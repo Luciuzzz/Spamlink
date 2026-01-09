@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LandingController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LandingContactController;
 
 Route::get('/', [LandingController::class, 'show'])->name('home');
 Route::get('/u/{username}', [LandingController::class, 'showUser'])->name('landing.user');
@@ -30,3 +31,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
 require __DIR__.'/auth.php';
 
 Route::fallback(fn () => redirect()->route('auth.login'));
+
+Route::post('/u/{username}/contacto', [LandingContactController::class, 'store'])
+    ->name('landing.contact');

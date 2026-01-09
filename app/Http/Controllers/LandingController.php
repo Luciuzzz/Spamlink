@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use App\Models\ContactMessage;
 
 
 class LandingController extends Controller
@@ -28,7 +28,7 @@ class LandingController extends Controller
             ->get();
 
         // Retornar la vista pasando todo lo necesario
-        return view('landing', [ // <-- cambiar 'landing.user' por 'landing'
+        return view('landing', [ 
             'user' => $user,
             'settings' => $settings,
             'links' => $links,

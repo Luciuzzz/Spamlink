@@ -10,6 +10,7 @@
         "filament/filament": "^3.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "njoguamos/laravel-turnstile": "^3.2",
         "ryangjchandler/laravel-cloudflare-turnstile": "^3.0"
     },
     "require-dev": {
