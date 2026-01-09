@@ -2,34 +2,34 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Setting as SettingModel;
-use Filament\Forms;
+use App\Models\Setting;
 use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Forms;
+use Illuminate\Support\Facades\Auth;
+use Filament\Notifications\Notification;
 
-class Settings extends Page
+class MySettings extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
-    protected static ?string $navigationLabel = 'Configuración';
+    protected static string $view = 'filament.pages.my-settings';
+    protected static ?string $navigationLabel = 'Mi Configuración';
     protected static ?string $navigationGroup = 'Contenido';
-
-    protected static string $view = 'filament.pages.settings';
 
     public ?array $data = [];
 
     public function mount(): void
     {
-        $setting = SettingModel::query()->first();
+        $userId = Auth::id();
 
-        if (!$setting) {
-            $setting = SettingModel::query()->create([
-                'company_name' => 'Empresa',
-            ]);
-        }
+        $setting = Setting::firstOrCreate(
+            ['user_id' => $userId],
+            ['company_name' => 'Empresa']
+        );
 
         $this->form->fill($setting->toArray());
     }
+
 
     public function form(Form $form): Form
     {
@@ -88,13 +88,11 @@ class Settings extends Page
     public function save(): void
     {
         $validated = $this->form->getState();
+        $userId = Auth::id();
 
-        $setting = SettingModel::query()->first();
-        if (!$setting) {
-            $setting = new SettingModel();
-        }
-
+        $setting = Setting::firstOrNew(['user_id' => $userId]);
         $setting->fill($validated);
+        $setting->user_id = $userId;
         $setting->save();
 
         Notification::make()
@@ -102,4 +100,11 @@ class Settings extends Page
             ->success()
             ->send();
     }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['user_id'] = Auth::id();
+        return $data;
+    }
+
 }

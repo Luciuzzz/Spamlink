@@ -2,21 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Setting;
-use App\Models\SocialLink;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
 
 class LandingController extends Controller
 {
+    // "/" -> login (nunca mostrar landing global)
     public function show()
     {
-        $settings = Setting::query()->first();
-        $links = SocialLink::query()
+        return redirect()->route('login');
+    }
+    
+    // "/u/{username}" -> landing pública del usuario
+    public function showUser(string $username)
+    {
+        // Buscar usuario por username o fallar
+        $user = User::where('username', $username)->firstOrFail();
+
+        // Obtener configuraciones y links activos
+        $settings = $user->setting;
+        $links = $user->socialLinks()
             ->where('is_active', true)
             ->orderBy('order')
-            ->get()
-        ;
+            ->get();
 
-        return view('landing', compact('settings', 'links'));
+        // Retornar la vista pasando todo lo necesario
+        return view('landing', [ // <-- cambiar 'landing.user' por 'landing'
+            'user' => $user,
+            'settings' => $settings,
+            'links' => $links,
+        ]);
     }
 }

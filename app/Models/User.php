@@ -22,6 +22,7 @@ class User extends Authenticatable implements FilamentUser
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
     ];
@@ -54,4 +55,15 @@ class User extends Authenticatable implements FilamentUser
         return true;
         //return str_ends_with($this->email, '@gmail.com');
     }
+
+    public function setting()
+    {
+        return $this->hasOne(\App\Models\Setting::class, 'user_id');
+    }
+
+    public function socialLinks()
+    {
+        return $this->hasMany(SocialLink::class, 'user_id');
+    }
+
 }

@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class SocialLinkResource extends Resource
 {
@@ -24,6 +26,10 @@ class SocialLinkResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+            Forms\Components\Hidden::make('user_id')
+                ->default(fn() => Auth::id())
+                ->dehydrated(),
+
             Forms\Components\Section::make('Datos del enlace')
                 ->schema([
                     Forms\Components\TextInput::make('name')
@@ -115,5 +121,11 @@ class SocialLinkResource extends Resource
             'create' => Pages\CreateSocialLink::route('/create'),
             'edit' => Pages\EditSocialLink::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('user_id', Auth::id());
     }
 }

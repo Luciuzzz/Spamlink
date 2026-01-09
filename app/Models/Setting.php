@@ -16,5 +16,12 @@ class Setting extends Model
         'bg_mobile_path',
         'whatsapp_number',
         'location_text',
+        'user_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
+
 }
