@@ -27,12 +27,15 @@ class ContactMessageResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->label('Nombre')
                     ->disabled(),
 
                 Forms\Components\TextInput::make('email')
+                    ->label('Email')
                     ->disabled(),
 
                 Forms\Components\Textarea::make('message')
+                    ->label('Mensaje')
                     ->disabled()
                     ->rows(6),
 
@@ -47,12 +50,15 @@ class ContactMessageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nombre')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('email')
+                    ->label('Email')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('message')
+                Tables\Columns\TextColumn::make('message') 
+                    ->label('Mensaje')
                     ->limit(40),
 
                 Tables\Columns\IconColumn::make('read_at')
@@ -62,6 +68,7 @@ class ContactMessageResource extends Resource
                     ->falseIcon('heroicon-o-envelope'),
 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Enviado el')
                     ->dateTime()
                     ->sortable(),
             ])

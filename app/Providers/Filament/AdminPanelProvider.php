@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
 
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Yellow,
             ])
 
             ->discoverResources(

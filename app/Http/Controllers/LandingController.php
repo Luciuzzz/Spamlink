@@ -4,31 +4,37 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\ContactMessage;
+use App\Models\Setting;
+use App\Models\SocialLink;
 
 
 class LandingController extends Controller
 {
     // "/" -> login (nunca mostrar landing global)
-    public function show()
+     public function show()
     {
-        return redirect()->route('login');
+        $settings = Setting::first();
+        $links = SocialLink::where('is_active', true)->orderBy('order')->get();
+
+        return view('landing', [
+            'user' => null,
+            'settings' => $settings,
+            'links' => $links,
+        ]);
     }
-    
-    // "/u/{username}" -> landing pública del usuario
+
+    // Landing de un usuario
     public function showUser(string $username)
     {
-        // Buscar usuario por username o fallar
         $user = User::where('username', $username)->firstOrFail();
 
-        // Obtener configuraciones y links activos
         $settings = $user->setting;
         $links = $user->socialLinks()
             ->where('is_active', true)
             ->orderBy('order')
             ->get();
 
-        // Retornar la vista pasando todo lo necesario
-        return view('landing', [ 
+        return view('landing', [
             'user' => $user,
             'settings' => $settings,
             'links' => $links,

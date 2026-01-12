@@ -15,93 +15,134 @@ use Illuminate\Support\Facades\Auth;
 class SocialLinkResource extends Resource
 {
     protected static ?string $model = SocialLink::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-link';
     protected static ?string $navigationLabel = 'Redes / Links';
     protected static ?string $modelLabel = 'Link';
     protected static ?string $pluralModelLabel = 'Links';
-
     protected static ?string $navigationGroup = 'Contenido';
 
     public static function form(Form $form): Form
     {
         return $form->schema([
+            // Seguridad: El ID del usuario se asigna automáticamente
             Forms\Components\Hidden::make('user_id')
                 ->default(fn() => Auth::id())
-                ->dehydrated(),
+                ->required(),
 
             Forms\Components\Section::make('Datos del enlace')
                 ->schema([
                     Forms\Components\TextInput::make('name')
                         ->label('Nombre')
+                        ->placeholder('Ej: Mi Instagram o Contacto')
                         ->required()
                         ->maxLength(255),
 
-                    Forms\Components\TextInput::make('url')
-                        ->label('URL')
+                    Forms\Components\Select::make('type')
+                        ->label('Tipo')
                         ->required()
-                        ->url()
-                        ->maxLength(2048),
+                        ->options([
+                            'url' => 'URL / Sitio Web',
+                            'email' => 'Correo electrónico',
+                            'whatsapp' => 'WhatsApp',
+                        ])
+                        ->default('url')
+                        ->live(), // Permite que el campo URL reaccione al cambio inmediatamente
+
+                    Forms\Components\TextInput::make('url')
+                        ->label(fn ($get) => match ($get('type')) {
+                            'email' => 'Dirección de correo',
+                            'whatsapp' => 'Número de WhatsApp',
+                            default => 'URL o enlace',
+                        })
+                        ->placeholder(fn ($get) => match ($get('type')) {
+                            'email' => 'ejemplo@correo.com',
+                            'whatsapp' => '595981123456',
+                            default => 'sitio.com',
+                        })
+                        ->required()
+                        ->maxLength(2048)
+                        // Validación dinámica corregida para no bloquear tipos distintos a URL
+                        ->rules(fn ($get) => match ($get('type')) {
+                            'email' => ['email'],
+                            'whatsapp' => ['regex:/^[0-9+]+$/'],
+                            'url' => ['url'],
+                            default => [],
+                        })
+                        ->dehydrateStateUsing(function ($state, $get) {
+                            if ($get('type') === 'whatsapp') {
+                                // Limpia espacios y caracteres para guardar solo el número
+                                return preg_replace('/\D+/', '', $state);
+                            }
+                            return $state;
+                        }),
 
                     Forms\Components\FileUpload::make('icon_path')
                         ->label('Ícono (opcional)')
                         ->disk('public')
-                        ->directory('icons')
+                        ->directory('social-icons')
                         ->image()
                         ->imageEditor()
-                        ->maxSize(1024)
-                        ->helperText('Se guarda en storage/app/public/icons'),
+                        ->imageEditorAspectRatios(['1:1'])
+                        ->maxSize(1024),
 
                     Forms\Components\TextInput::make('order')
-                        ->label('Orden')
+                        ->label('Orden de aparición')
                         ->numeric()
                         ->default(0)
-                        ->helperText('Menor = aparece primero'),
+                        ->helperText('Menor número aparece primero'),
 
                     Forms\Components\Toggle::make('is_active')
-                        ->label('Activo')
-                        ->default(true),
-                ])
-                ->columns(2),
+                        ->label('Enlace visible')
+                        ->default(true)
+                        ->inline(false),
+
+                ])->columns(2),
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('order')
-            ->reorderable('order') // arrastrar para reordenar
+            ->defaultSort('order', 'asc')
+            ->reorderable('order')
             ->columns([
                 Tables\Columns\TextColumn::make('order')
                     ->label('#')
-                    ->sortable()
-                    ->toggleable(),
+                    ->sortable(),
 
                 Tables\Columns\ImageColumn::make('icon_path')
-                    ->label('Ícono')
-                    ->disk('public')
-                    ->height(28)
-                    ->circular()
-                    ->toggleable(),
+                    ->label('Icono')
+                    ->circular(),
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nombre')
                     ->searchable()
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Tipo')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'url' => 'info',
+                        'whatsapp' => 'success',
+                        'email' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => ucfirst($state)),
+
                 Tables\Columns\TextColumn::make('url')
-                    ->label('URL')
-                    ->limit(40)
+                    ->label('Enlace/Dato')
+                    ->limit(30)
+                    ->copyable()
                     ->toggleable(),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Activo')
-                    ->boolean()
-                    ->sortable(),
+                    ->boolean(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Activo'),
+                    ->label('Estado de actividad'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -123,6 +164,7 @@ class SocialLinkResource extends Resource
         ];
     }
 
+    // El usuario solo puede gestionar sus propios registros
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
