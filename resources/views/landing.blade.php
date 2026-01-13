@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $settings?->company_name ?? 'Landing' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-</head>
 
+    {{-- Leaflet CSS --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    {{-- Turnstile --}}
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <style>
+        html, body {
+        transform: none !important;
+        }
+    </style>
+
+</head>
 <body class="min-h-screen text-white">
 
 {{-- Fondo --}}
@@ -31,7 +39,6 @@
     }
 }
 </style>
-
 <div class="fixed inset-0 -z-10 bg-center bg-cover bg-mobile"></div>
 
 <main class="max-w-md mx-auto px-4 py-10">
@@ -50,29 +57,18 @@
             <p class="mt-3 text-sm text-white/80">{{ $settings->description }}</p>
         @endif
 
-        {{-- Dirección --}}
         <p id="address-display" class="mt-4 text-sm text-white/80">
             Dirección: {{ $settings->address_text ?? 'Cargando...' }}
         </p>
-
-        {{-- Link a OpenStreetMap 
-        @if(!empty($settings?->location_text))
-            <p class="mt-2 text-sm text-blue-400 underline">
-                <a href="{{ $settings->location_text }}" target="_blank" rel="noopener">Ver en mapa</a>
-            </p>
-        @endif--}}
     </section>
 
     {{-- Links --}}
     <section class="mt-8 space-y-3">
         @forelse ($links as $link)
-            <a href="{{ $link->full_url }}"
-               target="_blank"
-               rel="noopener"
+            <a href="{{ $link->full_url }}" target="_blank" rel="noopener"
                class="block w-full rounded-xl px-4 py-3
                       bg-white/15 hover:bg-white/25
                       border border-white/20 backdrop-blur transition-all duration-200">
-
                 <div class="flex items-center gap-3">
                     @if(!empty($link->icon_path))
                         <img src="{{ asset('storage/'.$link->icon_path) }}"
@@ -95,7 +91,6 @@
                     </div>
                 </div>
             </a>
-
         @empty
             <div class="text-center text-white/80 text-sm py-10 bg-white/5 rounded-xl border border-dashed border-white/20">
                 No hay enlaces configurados todavía.
@@ -122,7 +117,7 @@
     ></div>
 </main>
 
-{{-- FOOTER Y MODALES --}}
+{{-- Footer y modales --}}
 <div class="fixed bottom-6 right-6 z-50 flex items-center gap-4 text-sm text-white/80">
     <button onclick="openContactModal()" class="hover:text-white underline">
         Contacto
@@ -143,6 +138,7 @@
     </details>
 </div>
 
+{{-- WhatsApp flotante --}}
 @if (!empty($settings?->whatsapp_number))
     @php $wa = preg_replace('/\D+/', '', $settings->whatsapp_number); @endphp
     <a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener"
@@ -153,87 +149,93 @@
     </a>
 @endif
 
-<div id="contactModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="w-full max-w-md rounded-2xl bg-[#111] p-6 border border-white/10 shadow-2xl">
+{{-- Modal contacto --}}
+<div
+    id="contactModal"
+    style="position: fixed; inset: 0; width: 100vw; height: 100dvh; left: 0; top: 0;"
+    class="z-[9999] hidden bg-black/70
+           flex items-end sm:items-center justify-center
+           p-0 sm:p-4">
+
+    <div class="
+    w-screen
+    max-w-none
+
+    sm:w-full
+    sm:max-w-md
+
+    rounded-t-2xl sm:rounded-2xl
+    bg-black/90
+    p-5 sm:p-6
+    border border-white/20
+    shadow-2xl
+
+    h-[100dvh] sm:h-auto
+    sm:max-h-[90vh]
+
+    overflow-y-auto
+">
+
+
         <h2 class="text-xl font-bold mb-4">Enviar mensaje</h2>
-        <form method="POST" action="{{ isset($user) ? route('landing.contact', $user->username) : '#' }}">
+
+        <form method="POST" action="{{ isset($user) ? route('landing.contact', $user->username) : route('landing.contact') }}">
             @csrf
             <input name="name" required placeholder="Tu nombre" class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-white/30 outline-none">
             <input name="email" type="email" required placeholder="Tu email" class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-white/30 outline-none">
             <textarea name="message" required rows="4" placeholder="¿En qué puedo ayudarte?" class="w-full mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-white/30 outline-none"></textarea>
 
-            <div id="turnstile-container" class="cf-turnstile"
-                data-sitekey="{{ config('services.turnstile.site_key') }}"
-                data-size="invisible">
-            </div>
+            <div id="turnstile-container" class="cf-turnstile mb-4" data-sitekey="{{ config('services.turnstile.site_key') }}"></div>
 
-            <div class="flex justify-end gap-3">
+            <div class="flex flex-col sm:flex-row justify-end gap-3">
                 <button type="button" onclick="closeContactModal()" class="px-4 py-2 text-white/60 hover:text-white">Cerrar</button>
                 <button class="bg-white text-black font-bold px-6 py-2 rounded-xl hover:bg-gray-200 transition">Enviar</button>
             </div>
         </form>
     </div>
 </div>
+
+{{-- Scripts --}}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-function openContactModal() {
+    // Modal contacto
+    function openContactModal() {
         const modal = document.getElementById('contactModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-
-        if(window.turnstile) {
-            turnstile.render('#turnstile-container', {
-                sitekey: "{{ config('services.turnstile.site_key') }}"
-            });
-        }
     }
-
     function closeContactModal() {
         const modal = document.getElementById('contactModal');
         modal.classList.remove('flex');
         modal.classList.add('hidden');
     }
-</script>
-<script>
-let miniMap = null; // Referencia global al mapa
 
-const LAT = {{ $settings->latitude ?? '-25.3' }};
-const LNG = {{ $settings->longitude ?? '-57.6' }};
-const LOCATION_LINK = "{{ $settings->location_text ?? '#' }}";
+    // Mini-mapa y dirección
+    let miniMap = null;
+    const LAT = {{ $settings->latitude ?? '-25.3' }};
+    const LNG = {{ $settings->longitude ?? '-57.6' }};
+    const LOCATION_LINK = "{{ $settings->location_text ?? '#' }}";
 
-function initializeMiniMap() {
-    const container = document.getElementById('mini-map');
-    if (!container) return;
+    function initializeMiniMap() {
+        const container = document.getElementById('mini-map');
+        if (!container) return;
+        if (miniMap) { miniMap.remove(); miniMap = null; }
 
-    // Si ya hay un mapa, lo destruimos
-    if (miniMap) {
-        miniMap.remove();
-        miniMap = null;
+        miniMap = L.map(container, { zoomControl: false, attributionControl: false }).setView([LAT, LNG], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+        L.marker([LAT, LNG]).addTo(miniMap);
+
+        miniMap.on('click', () => {
+            if (LOCATION_LINK !== '#') window.open(LOCATION_LINK, '_blank');
+        });
+
+        setTimeout(() => miniMap.invalidateSize(), 300);
     }
 
-    miniMap = L.map(container, { zoomControl: false, attributionControl: false }).setView([LAT, LNG], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
-    L.marker([LAT, LNG]).addTo(miniMap);
+    function updateAddress() {
+        const addressEl = document.getElementById('address-display');
+        if(!addressEl || !LAT || !LNG) return;
 
-    miniMap.on('click', () => {
-        if (LOCATION_LINK !== '#') window.open(LOCATION_LINK, '_blank');
-    });
-
-    // Forzar refresco de tamaño
-    setTimeout(() => miniMap.invalidateSize(), 300);
-}
-
-// Inicialización al cargar la página
-document.addEventListener('DOMContentLoaded', () => {
-    initializeMiniMap();
-    updateAddress();
-});
-
-// Función para actualizar la dirección si no existe en DB
-function updateAddress() {
-    const addressEl = document.getElementById('address-display');
-    if(!addressEl || !LAT || !LNG) return;
-
-    if(!addressEl.textContent || addressEl.textContent.includes('Cargando')) {
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${LAT}&lon=${LNG}&zoom=18&addressdetails=1`, {
             headers: { 'User-Agent': 'MiApp/1.0 (lm9034064@gmail.com)' }
         })
@@ -246,18 +248,11 @@ function updateAddress() {
             addressEl.textContent = "Dirección: No disponible";
         });
     }
-}
 
-// Hook de Livewire para reinicializar el mapa después de renderizar
-Livewire.hook('message.processed', () => {
-    // Esperamos un frame para que el DOM esté listo
-    requestAnimationFrame(() => {
+    document.addEventListener('DOMContentLoaded', () => {
         initializeMiniMap();
         updateAddress();
     });
-});
 </script>
-
-
 </body>
 </html>
