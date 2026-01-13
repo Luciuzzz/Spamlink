@@ -1,23 +1,40 @@
-<x-filament-panels::page>
-    <form wire:submit.prevent="save" class="space-y-6">
-        {{ $this->form }}
+<x-dynamic-component
+    :component="$getFieldWrapperView()"
+    :field="$field"
+    wire:ignore
+>
+    <div
+        x-data="mapPicker(
+            @entangle($getStatePath()),
+            @entangle($getContainer()->getStatePath() . '.'.$getLongitudeField())
+        )"
+        x-init="init()"
+        class="space-y-2"
+    >
+        <div class="text-sm text-gray-600">
+            Haz clic en el mapa o arrastra el marcador para seleccionar la ubicación
+        </div>
 
-        <x-filament::button type="submit">
-            Guardar
-        </x-filament::button>
-    </form>
-</x-filament-panels::page>
+        <div
+            x-ref="map"
+            class="w-full rounded border"
+            style="height: 400px"
+        ></div>
+    </div>
+</x-dynamic-component>
 
 @once
     @push('styles')
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
     @endpush
 
     @push('scripts')
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
         <script>
-            // mapPicker para Alpine
             function mapPicker(latRef, lngRef) {
                 return {
                     lat: latRef,
@@ -30,11 +47,13 @@
                             const lat = parseFloat(this.lat) || -25.3;
                             const lng = parseFloat(this.lng) || -57.6;
 
-                            if(this.map) {
+                            // Destruye el mapa anterior si existe
+                            if (this.map) {
                                 this.map.remove();
                                 this.map = null;
                             }
 
+                            // Inicializa el mapa
                             this.map = L.map(this.$refs.map).setView([lat, lng], 15);
 
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -58,24 +77,12 @@
                                 updateCoords(p.lat, p.lng);
                             });
 
+                            // Asegura que Leaflet renderice correctamente
                             setTimeout(() => this.map.invalidateSize(), 300);
                         });
-                    }
+                    },
                 }
             }
-
-            // Solo ejecutar si Livewire existe
-            document.addEventListener('DOMContentLoaded', () => {
-                if(window.Livewire) {
-                    Livewire.hook('message.processed', (message, component) => {
-                        document.querySelectorAll('[x-data]').forEach(el => {
-                            if(el.__x) {
-                                el.__x.initTree(el.__x.$data);
-                            }
-                        });
-                    });
-                }
-            });
         </script>
     @endpush
 @endonce

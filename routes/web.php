@@ -30,7 +30,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::fallback(fn () => redirect()->route('auth.login'));
+Route::fallback(fn () => redirect()->route('login'));
 
-Route::post('/u/{username}/contacto', [LandingContactController::class, 'store'])
+Route::post('/landing/{username}/contact', [LandingContactController::class, 'store'])
     ->name('landing.contact');

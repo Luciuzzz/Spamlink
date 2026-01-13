@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $settings?->company_name ?? 'Landing' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body class="min-h-screen text-white">
@@ -48,30 +50,35 @@
             <p class="mt-3 text-sm text-white/80">{{ $settings->description }}</p>
         @endif
 
+        {{-- Dirección --}}
+        <p id="address-display" class="mt-4 text-sm text-white/80">
+            Dirección: {{ $settings->address_text ?? 'Cargando...' }}
+        </p>
+
+        {{-- Link a OpenStreetMap 
         @if(!empty($settings?->location_text))
-            <p class="mt-4 text-sm text-white/80">
-                {{ $settings->location_text }}
+            <p class="mt-2 text-sm text-blue-400 underline">
+                <a href="{{ $settings->location_text }}" target="_blank" rel="noopener">Ver en mapa</a>
             </p>
-        @endif
+        @endif--}}
     </section>
 
     {{-- Links --}}
     <section class="mt-8 space-y-3">
         @forelse ($links as $link)
             <a href="{{ $link->full_url }}"
-            target="_blank"
-            rel="noopener"
-            class="block w-full rounded-xl px-4 py-3
-                    bg-white/15 hover:bg-white/25
-                    border border-white/20 backdrop-blur transition-all duration-200">
+               target="_blank"
+               rel="noopener"
+               class="block w-full rounded-xl px-4 py-3
+                      bg-white/15 hover:bg-white/25
+                      border border-white/20 backdrop-blur transition-all duration-200">
 
                 <div class="flex items-center gap-3">
                     @if(!empty($link->icon_path))
                         <img src="{{ asset('storage/'.$link->icon_path) }}"
-                            alt="{{ $link->name }}"
-                            class="h-6 w-6 rounded object-cover">
+                             alt="{{ $link->name }}"
+                             class="h-6 w-6 rounded object-cover">
                     @else
-                        {{-- Icono por defecto si no hay imagen --}}
                         <div class="h-6 w-6 flex items-center justify-center">
                             <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
@@ -95,6 +102,24 @@
             </div>
         @endforelse
     </section>
+
+    {{-- Mini-mapa --}}
+    <div
+        id="mini-map"
+        style="
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            width: 20vw;
+            height: 10vh;
+            min-width: 160px;
+            min-height: 100px;
+            z-index: 50;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        "
+    ></div>
 </main>
 
 {{-- FOOTER Y MODALES --}}
@@ -137,6 +162,11 @@
             <input name="email" type="email" required placeholder="Tu email" class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-white/30 outline-none">
             <textarea name="message" required rows="4" placeholder="¿En qué puedo ayudarte?" class="w-full mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-white/30 outline-none"></textarea>
 
+            <div id="turnstile-container" class="cf-turnstile"
+                data-sitekey="{{ config('services.turnstile.site_key') }}"
+                data-size="invisible">
+            </div>
+
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="closeContactModal()" class="px-4 py-2 text-white/60 hover:text-white">Cerrar</button>
                 <button class="bg-white text-black font-bold px-6 py-2 rounded-xl hover:bg-gray-200 transition">Enviar</button>
@@ -144,17 +174,90 @@
         </form>
     </div>
 </div>
-
 <script>
 function openContactModal() {
-    const m = document.getElementById('contactModal');
-    m.classList.replace('hidden', 'flex');
-}
-function closeContactModal() {
-    const m = document.getElementById('contactModal');
-    m.classList.replace('flex', 'hidden');
-}
+        const modal = document.getElementById('contactModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        if(window.turnstile) {
+            turnstile.render('#turnstile-container', {
+                sitekey: "{{ config('services.turnstile.site_key') }}"
+            });
+        }
+    }
+
+    function closeContactModal() {
+        const modal = document.getElementById('contactModal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
 </script>
+<script>
+let miniMap = null; // Referencia global al mapa
+
+const LAT = {{ $settings->latitude ?? '-25.3' }};
+const LNG = {{ $settings->longitude ?? '-57.6' }};
+const LOCATION_LINK = "{{ $settings->location_text ?? '#' }}";
+
+function initializeMiniMap() {
+    const container = document.getElementById('mini-map');
+    if (!container) return;
+
+    // Si ya hay un mapa, lo destruimos
+    if (miniMap) {
+        miniMap.remove();
+        miniMap = null;
+    }
+
+    miniMap = L.map(container, { zoomControl: false, attributionControl: false }).setView([LAT, LNG], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
+    L.marker([LAT, LNG]).addTo(miniMap);
+
+    miniMap.on('click', () => {
+        if (LOCATION_LINK !== '#') window.open(LOCATION_LINK, '_blank');
+    });
+
+    // Forzar refresco de tamaño
+    setTimeout(() => miniMap.invalidateSize(), 300);
+}
+
+// Inicialización al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    initializeMiniMap();
+    updateAddress();
+});
+
+// Función para actualizar la dirección si no existe en DB
+function updateAddress() {
+    const addressEl = document.getElementById('address-display');
+    if(!addressEl || !LAT || !LNG) return;
+
+    if(!addressEl.textContent || addressEl.textContent.includes('Cargando')) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${LAT}&lon=${LNG}&zoom=18&addressdetails=1`, {
+            headers: { 'User-Agent': 'MiApp/1.0 (lm9034064@gmail.com)' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            addressEl.textContent = data.display_name ? "Dirección: " + data.display_name : "Dirección: No disponible";
+        })
+        .catch(err => {
+            console.error('Error Nominatim:', err);
+            addressEl.textContent = "Dirección: No disponible";
+        });
+    }
+}
+
+// Hook de Livewire para reinicializar el mapa después de renderizar
+Livewire.hook('message.processed', () => {
+    // Esperamos un frame para que el DOM esté listo
+    requestAnimationFrame(() => {
+        initializeMiniMap();
+        updateAddress();
+    });
+});
+</script>
+
 
 </body>
 </html>

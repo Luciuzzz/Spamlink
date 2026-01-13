@@ -9,14 +9,25 @@ use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 
 class LandingContactController extends Controller
 {
+    // Mostrar landing
+    public function showLanding(string $username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        $settings = $user->setting; // Relación user->setting
+        $links = $user->links;     // Relación user->links
+
+        return view('landing', compact('user', 'settings', 'links'));
+    }
+
+    // Guardar mensaje
     public function store(Request $request, string $username)
     {
         $user = User::where('username', $username)->firstOrFail();
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'message' => ['required', 'string'],
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'message' => 'required|string',
             'cf-turnstile-response' => ['required', new Turnstile()],
         ]);
 

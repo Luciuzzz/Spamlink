@@ -11,7 +11,6 @@ class ContactMessage extends Model
         'name',
         'email',
         'message',
-        'ip_address',
         'is_read',
         'read_at',
     ];

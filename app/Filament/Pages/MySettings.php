@@ -8,6 +8,8 @@ use Filament\Pages\Page;
 use Filament\Forms;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
+use App\Forms\Components\MapPicker;
+use GuzzleHttp\Client;
 
 class MySettings extends Page
 {
@@ -21,15 +23,12 @@ class MySettings extends Page
     public function mount(): void
     {
         $userId = Auth::id();
-
         $setting = Setting::firstOrCreate(
             ['user_id' => $userId],
             ['company_name' => 'Empresa']
         );
-
         $this->form->fill($setting->toArray());
     }
-
 
     public function form(Form $form): Form
     {
@@ -56,9 +55,10 @@ class MySettings extends Page
                             ->helperText('Ej: +595 9XX XXX XXX')
                             ->maxLength(50),
 
-                        Forms\Components\TextInput::make('location_text')
-                            ->label('Ubicación (texto)')
-                            ->maxLength(255),
+                        MapPicker::make('latitude')
+                            ->longitudeField('longitude')
+                            ->label('Ubicación')
+                            ->required(),
                     ])
                     ->columns(2),
 
@@ -93,6 +93,19 @@ class MySettings extends Page
         $setting = Setting::firstOrNew(['user_id' => $userId]);
         $setting->fill($validated);
         $setting->user_id = $userId;
+
+        if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
+            $lat = $validated['latitude'];
+            $lng = $validated['longitude'];
+
+            // Generamos link de OpenStreetMap
+            $setting->location_text = "https://www.openstreetmap.org/?mlat={$lat}&mlon={$lng}#map=17/{$lat}/{$lng}";
+
+            // Obtenemos dirección legible con Nominatim
+            $address = $this->getAddressFromCoordinates($lat, $lng);
+            $setting->address_text = $address ?? '';
+        }
+
         $setting->save();
 
         Notification::make()
@@ -101,10 +114,31 @@ class MySettings extends Page
             ->send();
     }
 
+
+    protected function getAddressFromCoordinates($lat, $lng): ?string
+    {
+        try {
+            $client = new Client([
+                'headers' => [
+                    'User-Agent' => 'MiApp/1.0 (tuemail@ejemplo.com)'
+                ]
+            ]);
+
+            $url = "https://nominatim.openstreetmap.org/reverse?lat={$lat}&lon={$lng}&format=json";
+            $response = $client->get($url);
+            $data = json_decode($response->getBody(), true);
+
+            return $data['display_name'] ?? null;
+
+        } catch (\Exception $e) {
+            // Si falla Nominatim, devolvemos null
+            return null;
+        }
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['user_id'] = Auth::id();
         return $data;
     }
-
 }

@@ -16,6 +16,8 @@ class Setting extends Model
         'bg_mobile_path',
         'whatsapp_number',
         'location_text',
+        'latitude',
+        'longitude',
         'user_id',
     ];
 

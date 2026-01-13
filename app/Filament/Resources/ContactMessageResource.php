@@ -46,37 +46,47 @@ class ContactMessageResource extends Resource
     
 
     public static function table(Table $table): Table
-    {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nombre')
-                    ->searchable(),
+{
+    return $table
+        ->columns([
+            Tables\Columns\TextColumn::make('name')
+                ->label('Nombre')
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('email')
-                    ->label('Email')
-                    ->searchable(),
+            Tables\Columns\TextColumn::make('email')
+                ->label('Email')
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('message') 
-                    ->label('Mensaje')
-                    ->limit(40),
+            Tables\Columns\TextColumn::make('message')
+                ->label('Mensaje')
+                ->limit(40),
 
-                Tables\Columns\IconColumn::make('read_at')
-                    ->label('Leído')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check')
-                    ->falseIcon('heroicon-o-envelope'),
+            Tables\Columns\IconColumn::make('read_at')
+                ->label('Leído')
+                ->boolean()
+                ->trueIcon('heroicon-o-check')
+                ->falseIcon('heroicon-o-envelope'),
 
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Enviado el')
-                    ->dateTime()
-                    ->sortable(),
-            ])
-            ->defaultSort('created_at', 'desc');
-    }
-
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('Enviado el')
+                ->dateTime()
+                ->sortable(),
+        ])
+        ->defaultSort('created_at', 'desc')
+        ->actions([
+            // Acción: Marcar como leído
+            \Filament\Tables\Actions\Action::make('markAsRead') // uso de namespace completo
+                ->label('Marcar como leído')
+                ->icon('heroicon-o-check')
+                ->color('success')
+                ->visible(fn ($record) => is_null($record->read_at)) // solo si no está leído
+                ->action(function ($record) {
+                    $record->read_at = now();
+                    $record->save();
+                }),
+        ]);
+}
     
-
     public static function getRelations(): array
     {
         return [
