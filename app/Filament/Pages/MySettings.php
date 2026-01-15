@@ -11,6 +11,7 @@ use Filament\Notifications\Notification;
 use App\Forms\Components\MapPicker;
 use GuzzleHttp\Client;
 
+
 class MySettings extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
@@ -55,12 +56,75 @@ class MySettings extends Page
                             ->helperText('Ej: +595 9XX XXX XXX')
                             ->maxLength(50),
 
+                        Forms\Components\Placeholder::make('Ubicación')
+                            ->content(<<<'HTML'
+                                <div x-data="locationPicker()" class="relative">
+                                    <input type="text" x-ref="locationInput" placeholder="Escribí la dirección..."
+                                        class="form-control z-0 py-1 px-2 w-full"
+                                        autocomplete="on">
+                                    <ul x-ref="resultsList"
+                                        class="absolute z-50 w-full max-h-48 overflow-y-auto bg-white text-black rounded-md shadow-lg mt-1 hidden"></ul>
+                                </div>
+                                HTML
+                                    ),
+
+
                         MapPicker::make('latitude')
                             ->longitudeField('longitude')
                             ->label('Ubicación')
                             ->required(),
                     ])
                     ->columns(2),
+                
+                Forms\Components\Section::make('Identidad visual')
+                    ->schema([
+                        Forms\Components\FileUpload::make('logo_path')
+                            ->label('Logo')
+                            ->disk('public')
+                            ->directory('branding')
+                            ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios(['1:1'])
+                            ->maxSize(2048),
+
+                        Forms\Components\FileUpload::make('favicon_path')
+                            ->label('Favicon')
+                            ->disk('public')
+                            ->directory('branding')
+                            ->image()
+                            ->helperText('PNG o ICO ~ recomendado 32x32 o 48x48')
+                            ->maxSize(512),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('SEO / Metadatos')
+                    ->schema([
+                        Forms\Components\TextInput::make('meta_title')
+                            ->label('Meta title')
+                            ->maxLength(70)
+                            ->helperText('Título para Google y redes'),
+
+                        Forms\Components\Textarea::make('meta_description')
+                            ->label('Meta description')
+                            ->rows(3)
+                            ->maxLength(160),
+
+                        Forms\Components\TextInput::make('meta_keywords')
+                            ->label('Keywords')
+                            ->helperText('Separadas por coma'),
+
+                        Forms\Components\FileUpload::make('meta_image_path')
+                            ->label('Imagen para redes (OG)')
+                            ->disk('public')
+                            ->directory('branding')
+                            ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios(['1.91:1'])
+                            ->maxSize(4096),
+                    ])
+                    ->columns(2),
+
+
 
                 Forms\Components\Section::make('Fondos')
                     ->schema([
@@ -94,16 +158,22 @@ class MySettings extends Page
         $setting->fill($validated);
         $setting->user_id = $userId;
 
+        if (!empty($validated['location_text'])) {
+            $setting->location_text = $validated['location_text'];
+        }
+
         if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
             $lat = $validated['latitude'];
             $lng = $validated['longitude'];
 
-            // Generamos link de OpenStreetMap
-            $setting->location_text = "https://www.openstreetmap.org/?mlat={$lat}&mlon={$lng}#map=17/{$lat}/{$lng}";
+            if (empty($validated['location_text'])) {
+                $setting->location_text = "https://www.openstreetmap.org/?mlat={$lat}&mlon={$lng}#map=17/{$lat}/{$lng}";
+            }
 
-            // Obtenemos dirección legible con Nominatim
-            $address = $this->getAddressFromCoordinates($lat, $lng);
-            $setting->address_text = $address ?? '';
+            if (empty($validated['address_text'])) {
+                $address = $this->getAddressFromCoordinates($lat, $lng);
+                $setting->address_text = $address ?? '';
+            }
         }
 
         $setting->save();
@@ -113,7 +183,6 @@ class MySettings extends Page
             ->success()
             ->send();
     }
-
 
     protected function getAddressFromCoordinates($lat, $lng): ?string
     {

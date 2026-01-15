@@ -85,6 +85,28 @@ class SocialLinkResource extends Resource
                         ->imageEditorAspectRatios(['1:1'])
                         ->maxSize(1024),
 
+                    Forms\Components\Select::make('icon_preset')
+                        ->label('Ícono predefinido')
+                        ->options([
+                            'facebook'  => 'Facebook',
+                            'instagram' => 'Instagram',
+                            'X'         => 'Twitter',
+                            'hilos'     => 'Threads',
+                            'youtube'   => 'YouTube',
+                            'tik-tok'   => 'TikTok',
+                            'email'     => 'Correo electrónico',
+                            'telegrama'  => 'Telegram',
+                            'whatsapp'  => 'WhatsApp',
+                            'linkedin'  => 'LinkedIn',
+                            'github'    => 'GitHub',
+                            'pinterest' => 'Pinterest',
+                            'website'   => 'Sitio web',
+                        ])
+                        ->searchable()
+                        ->placeholder('Seleccionar ícono')
+                        ->helperText('Se usa solo si no se sube un ícono propio'),
+
+
                     Forms\Components\TextInput::make('order')
                         ->label('Orden de aparición')
                         ->numeric()

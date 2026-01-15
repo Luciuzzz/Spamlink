@@ -19,6 +19,17 @@ class Setting extends Model
         'latitude',
         'longitude',
         'user_id',
+
+        // Branding
+        'logo_path',
+        'favicon_path',
+
+        // Meta SEO
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'meta_image_path',
+        
     ];
 
     public function user()

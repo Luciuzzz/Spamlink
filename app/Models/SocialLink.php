@@ -17,6 +17,7 @@ class SocialLink extends Model
         'type',
         'url',
         'icon_path',
+        'icon_preset',
         'order',
         'is_active',
     ];
@@ -41,15 +42,15 @@ class SocialLink extends Model
                         return "https://wa.me/{$phone}";
 
                     // Cliente de correo local
-                    /* case 'email':
+                    case 'email':
                         $encodedEmail = urlencode($value);
-                        return "mailto:{$encodedEmail}"; */
+                        return "mailto:{$encodedEmail}"; 
 
                     // Gmail web
-                    case 'email':
+                    /*case 'email':
                         // Codificamos el correo por si tiene caracteres especiales
                         $encodedEmail = urlencode($value);
-                        return "https://mail.google.com/mail/?view=cm&fs=1&to={$encodedEmail}";
+                        return "https://mail.google.com/mail/?view=cm&fs=1&to={$encodedEmail}";*/
 
                     default:
                         // Enlaces web normales
