@@ -34,7 +34,6 @@
         </div>
 
         <!-- Botones de Acción -->
-
         <!-- Botón de Login grande -->
         <div class="mt-6">
             <x-primary-button class="w-full justify-center py-3">
@@ -54,8 +53,5 @@
                 </a>
             @endif
         </div>
-
-        
-
     </form>
 </x-guest-layout>

@@ -18,7 +18,7 @@
         <div
             x-ref="map"
             class="w-full rounded border"
-            style="height: 400px"
+            style="height: 400px; position: relative; z-index: 0;"
         ></div>
     </div>
 </x-dynamic-component>

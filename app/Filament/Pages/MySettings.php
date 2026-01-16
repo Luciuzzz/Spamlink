@@ -11,7 +11,6 @@ use Filament\Notifications\Notification;
 use App\Forms\Components\MapPicker;
 use GuzzleHttp\Client;
 
-
 class MySettings extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
@@ -55,27 +54,40 @@ class MySettings extends Page
                             ->label('WhatsApp')
                             ->helperText('Ej: +595 9XX XXX XXX')
                             ->maxLength(50),
-
-                        Forms\Components\Placeholder::make('Ubicación')
-                            ->content(<<<'HTML'
-                                <div x-data="locationPicker()" class="relative">
-                                    <input type="text" x-ref="locationInput" placeholder="Escribí la dirección..."
-                                        class="form-control z-0 py-1 px-2 w-full"
-                                        autocomplete="on">
-                                    <ul x-ref="resultsList"
-                                        class="absolute z-50 w-full max-h-48 overflow-y-auto bg-white text-black rounded-md shadow-lg mt-1 hidden"></ul>
-                                </div>
-                                HTML
-                                    ),
-
-
+                        
+                        Forms\Components\Hidden::make('latitude'),
+                        Forms\Components\Hidden::make('longitude'),
+                        Forms\Components\Hidden::make('location_text'),
+                        //mapa
                         MapPicker::make('latitude')
                             ->longitudeField('longitude')
-                            ->label('Ubicación')
+                            ->label('Mapa')
                             ->required(),
+                        // Campo del buscador
+                        Forms\Components\Field::make('search_location')
+                            ->label('Buscar ubicación')
+                            ->extraAttributes(['wire:ignore'])
+                            ->view('filament.components.location-search'),
+                                 
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('clearLocationText')
+                                ->label('Borrar ubicación personalizada')
+                                ->color('danger')
+                                ->icon('heroicon-o-trash')
+                                ->action(function () {
+                                    $this->data['location_text'] = null;
+
+                                    Notification::make()
+                                        ->title('Ubicación personalizada eliminada')
+                                        ->success()
+                                        ->send();
+                                })
+                                ->visible(fn () => !empty($this->data['location_text'])),
+                        ]),
+
                     ])
                     ->columns(2),
-                
+
                 Forms\Components\Section::make('Identidad visual')
                     ->schema([
                         Forms\Components\FileUpload::make('logo_path')
@@ -124,8 +136,6 @@ class MySettings extends Page
                     ])
                     ->columns(2),
 
-
-
                 Forms\Components\Section::make('Fondos')
                     ->schema([
                         Forms\Components\FileUpload::make('bg_desktop_path')
@@ -144,45 +154,41 @@ class MySettings extends Page
                             ->imageEditor()
                             ->maxSize(4096),
                     ])
-                    ->columns(2),
+                    ->columns(2)
             ])
             ->statePath('data');
     }
 
     public function save(): void
-    {
-        $validated = $this->form->getState();
-        $userId = Auth::id();
+{
+    $validated = $this->form->getState();
+    $userId = Auth::id();
 
-        $setting = Setting::firstOrNew(['user_id' => $userId]);
-        $setting->fill($validated);
-        $setting->user_id = $userId;
+    $setting = Setting::firstOrNew(['user_id' => $userId]);
+    $setting->fill($validated);
+    $setting->user_id = $userId;
 
-        if (!empty($validated['location_text'])) {
-            $setting->location_text = $validated['location_text'];
+    // Guardar cualquier texto escrito en location_text
+    $setting->location_text = $validated['location_text'] ?? null;
+
+    // Si hay lat/lng, generar dirección legible si address_text está vacío
+    if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
+        $lat = $validated['latitude'];
+        $lng = $validated['longitude'];
+
+        if (empty($validated['address_text'])) {
+            $address = $this->getAddressFromCoordinates($lat, $lng);
+            $setting->address_text = $address ?? '';
         }
-
-        if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
-            $lat = $validated['latitude'];
-            $lng = $validated['longitude'];
-
-            if (empty($validated['location_text'])) {
-                $setting->location_text = "https://www.openstreetmap.org/?mlat={$lat}&mlon={$lng}#map=17/{$lat}/{$lng}";
-            }
-
-            if (empty($validated['address_text'])) {
-                $address = $this->getAddressFromCoordinates($lat, $lng);
-                $setting->address_text = $address ?? '';
-            }
-        }
-
-        $setting->save();
-
-        Notification::make()
-            ->title('Configuración guardada')
-            ->success()
-            ->send();
     }
+
+    $setting->save();
+
+    Notification::make()
+        ->title('Configuración guardada')
+        ->success()
+        ->send();
+}
 
     protected function getAddressFromCoordinates($lat, $lng): ?string
     {
