@@ -43,7 +43,7 @@
 
         <!-- Enlaces auxiliares -->
         <div class="flex justify-between mt-6">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900" href="{{ route('register') }}">
+            <a class="underline text-sm text-amber-500 hover:text-amber-700" href="{{ route('register') }}">
                 {{ __('¿No tienes cuenta?') }}
             </a>
 

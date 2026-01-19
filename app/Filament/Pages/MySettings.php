@@ -16,7 +16,7 @@ class MySettings extends Page
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static string $view = 'filament.pages.my-settings';
     protected static ?string $navigationLabel = 'Mi Configuración';
-    protected static ?string $navigationGroup = 'Contenido';
+
 
     public ?array $data = [];
 

@@ -37,6 +37,10 @@
 
     {{-- Leaflet CSS --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <!-- Font Awesome 6 Free (CDN) -->
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
     {{-- Turnstile --}}
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
@@ -102,46 +106,61 @@
     </section>
 
     {{-- Links --}}
-    @php
-        $defaultIcons = [
-            'facebook' => asset('icons/facebook.png'),
-            'instagram' => asset('icons/instagram.png'),
-            'twitter' => asset('icons/twitter.png'),
-            'whatsapp' => asset('icons/whatsapp.png'),
-            'linkedin' => asset('icons/linkedin.png'),
-        ];
-    @endphp
+<section class="mt-8 space-y-4">
+    @forelse ($links as $record)
 
-    <section class="mt-8 space-y-3">
-        @forelse ($links as $link)
-            <a href="{{ $link->full_url }}" target="_blank" rel="noopener"
-               class="block w-full rounded-xl px-4 py-3
-                      bg-white/15 hover:bg-white/25
-                      border border-white/20 backdrop-blur transition-all duration-200">
-                <div class="flex items-center gap-3">
-                    <img src="{{ $link->icon_path ? asset('storage/'.$link->icon_path) : ($link->icon_preset ? asset('icons/'.$link->icon_preset.'.png') : asset('icons/link.png')) }}"
-                         alt="{{ $link->name }}"
-                         class="h-6 w-6 object-contain">
-                    <div class="flex-1 font-medium">{{ $link->name }}</div>
-                    <div class="text-xs uppercase tracking-widest text-white/40 group-hover:text-white/80">
-                        Abrir
-                    </div>
+        <a href="{{ $record->full_url }}"
+           target="_blank"
+           rel="noopener"
+           class="group block w-full rounded-xl px-4 py-3
+                  bg-white/15 hover:bg-white/25
+                  border border-white/20 backdrop-blur transition-all duration-200">
+
+            <div class="flex items-center gap-3">
+
+                {{-- ICONO --}}
+                @if (!empty($record->icon_path))
+                    {{-- Ícono personalizado --}}
+                    <img
+                        src="{{ asset('storage/' . $record->icon_path) }}"
+                        alt="{{ $record->name }}"
+                        class="h-6 w-6 object-contain"
+                    >
+
+                @elseif (!empty($record->icon_class))
+                    {{-- Ícono Font Awesome --}}
+                    <i class="{{ $record->icon_class }}"
+                       style="font-size: 1.4rem; color: {{ $record->icon_color }}"></i>
+
+                @else
+                    {{-- Fallback --}}
+                    <i class="fa-solid fa-link text-white/60"
+                       style="font-size: 1.4rem"></i>
+                @endif
+
+                {{-- NOMBRE --}}
+                <div class="flex-1 font-medium">
+                    {{ $record->name }}
                 </div>
-            </a>
-        @empty
-            <div class="text-center text-white/80 text-sm py-10 bg-white/5 rounded-xl border border-dashed border-white/20">
-                No hay enlaces configurados todavía.
+
+                {{-- ACCIÓN --}}
+                <div class="text-xs uppercase tracking-widest text-white/40
+                            group-hover:text-white/80">
+                    Abrir
+                </div>
+
             </div>
-        @endforelse
-    </section>
+        </a>
 
-    {{-- Mapa --}}
-    <section class="mt-8 z-0">
-        <h2 class="text-lg font-bold mb-3">Ubicación</h2>
-        <div id="mapPanel" class="w-full h-[50vh] border border-white/20 rounded-xl overflow-hidden z-0"></div>
-    </section>
+    @empty
+        <div class="text-center text-white/80 text-sm py-10
+                    bg-white/5 rounded-xl border border-dashed border-white/20">
+            No hay enlaces configurados todavía.
+        </div>
+    @endforelse
+</section>
 
-    {{-- Formulario de contacto --}}
+{{-- Formulario de contacto --}}
     <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10">
         <h2 class="text-lg font-bold mb-3">Contacto</h2>
 
@@ -166,6 +185,17 @@
         </form>
     </section>
 
+    {{-- Mapa --}}
+    <section class="mt-8 z-0">
+        <h2 class="text-lg font-bold mb-3 px-4">Ubicación</h2>
+    </section>
+
+    <div class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden">
+        <div
+            id="mapPanel"
+            class="h-[50vh] w-full border border-white/20 rounded-xl z-0">
+        </div>
+    </div>
 </main>
 
 {{-- Footer --}}
@@ -202,19 +232,33 @@
 {{-- Botones flotantes --}}
 <a id="whatsappBtn" href="https://wa.me/{{ preg_replace('/\D+/', '', $settings->whatsapp_number ?? '') }}"
    target="_blank" rel="noopener"
-   class="fixed right-6 z-50 w-14 h-14 flex items-center justify-center bg-[#25D366] text-white rounded-full shadow-xl hover:scale-110 transition-transform duration-300">
-    <img src="{{ asset('icons/wa.png') }}" alt="WhatsApp" class="w-10 h-10">
+   class="fixed right-6 z-50 w-14 h-14 flex items-center justify-center 
+          bg-[#25D366] text-white rounded-full shadow-xl
+          transition-transform duration-500 ease-in-out
+          hover:scale-110">
+
+    <i class="fa-brands fa-whatsapp text-[28px] 
+              transition-transform duration-500 ease-in-out
+              hover:rotate-360"></i>
 </a>
 
 <button id="shareBtn"
-    class="fixed left-6 z-50 bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur text-white px-4 py-2 rounded-xl flex items-center gap-2 transition">
+    class="group fixed left-6 bottom-6 z-50 bg-white text-black
+           border border-white/20 backdrop-blur rounded-xl
+           flex items-center gap-2 px-4 py-2
+           shadow-md hover:shadow-lg
+           transition-all duration-300 ease-in-out
+           hover:scale-105">
+
+    <!-- Texto -->
     Compartir
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-         fill="none" stroke="currentColor" class="w-5 h-5">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 8a3 3 0 10-6 0m6 8a3 3 0 10-6 0m9-4a3 3 0 10-6 0" />
-    </svg>
+
+    <!-- Icono Font Awesome -->
+    <i class="fa-solid fa-share-nodes text-lg
+              transition-transform duration-700 ease-in-out
+              group-hover:rotate-[360deg]"></i>
 </button>
+
 
 {{-- Scripts --}}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -285,9 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     adjustFloatingButtons();
     window.addEventListener('scroll', adjustFloatingButtons);
     window.addEventListener('resize', adjustFloatingButtons);
-
 });
 </script>
-
 </body>
 </html>

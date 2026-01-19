@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8f77ad2b6bb9b55b797a807649d5b3f3",
+    "content-hash": "048bdd1d514865c772eadeb33c1adf69",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -915,6 +915,64 @@
                 }
             ],
             "time": "2025-10-31T18:51:33+00:00"
+        },
+        {
+            "name": "duongtdvn/blade-lucide-icons",
+            "version": "1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/duongtdvn/blade-lucide-icons.git",
+                "reference": "6187e7d3dd92668a5f5e53680c706c660b76be05"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/duongtdvn/blade-lucide-icons/zipball/6187e7d3dd92668a5f5e53680c706c660b76be05",
+                "reference": "6187e7d3dd92668a5f5e53680c706c660b76be05",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.6",
+                "illuminate/support": "^12.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^10.0",
+                "phpunit/phpunit": "^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "BladeUI\\LucideIcons\\BladeLucideIconsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "BladeUI\\LucideIcons\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Duong Truong"
+                }
+            ],
+            "description": "A package to easily make use of Lucide icons in your Laravel Blade views.",
+            "homepage": "https://github.com/duongtdvn/blade-lucide-icons",
+            "keywords": [
+                "Lucide icons",
+                "blade",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/duongtdvn/blade-lucide-icons/issues",
+                "source": "https://github.com/duongtdvn/blade-lucide-icons/tree/1.0.4"
+            },
+            "time": "2025-05-12T08:46:51+00:00"
         },
         {
             "name": "egulias/email-validator",
