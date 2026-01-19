@@ -23,7 +23,7 @@ Antes de levantar el proyecto, asegúrate de tener instalado:
 1. **Clonar el repositorio:**
 
         
-        git clone <URL_DEL_REPOSITORIO>
+        git clone https://github.com/Luciuzzz/Spamlink.git
         cd <NOMBRE_DEL_PROYECTO>
 
 2. **Instalar dependencias PHP:**
@@ -71,17 +71,16 @@ Antes de levantar el proyecto, asegúrate de tener instalado:
         php artisan serve
 
 Por defecto, estará disponible en: http://127.0.0.1:8000
+
 Consideraciones adicionales
 
 - El mini-mapa usa Leaflet y requiere conexión a internet para los tiles de OpenStreetMap.
 
 - Los fondos responsivos se configuran desde la sección Settings de Filament.
 
-- El modal de contacto utiliza Cloudflare Turnstile para validar formularios.
-
 - Para ver cambios en CSS/JS en desarrollo, usar npm run dev y recargar la página.
 
--- Asegúrate de tener permisos de escritura en storage y bootstrap/cache.
+- Asegúrate de tener permisos de escritura en storage y bootstrap/cache.
 
 **Comandos útiles**
     
