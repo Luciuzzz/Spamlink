@@ -10,7 +10,6 @@ use Filament\Forms\Components\ViewField;
 use App\Models\LandingSection;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Components\Builder\Block;
 
 class MultimediaPage extends Page
 {
@@ -40,6 +39,7 @@ class MultimediaPage extends Page
             ]);
         }
 
+        // Llenamos $data con los valores de la DB
         $this->data = [
             'title' => $section->title,
             'description' => $section->description,
@@ -47,13 +47,14 @@ class MultimediaPage extends Page
             'blocks' => $section->data['blocks'] ?? [],
         ];
 
+        // Llenamos el formulario con $data
         $this->form->fill($this->data);
     }
 
     public function form(Form $form): Form
     {
         return $form
-            ->statePath('data')
+            ->statePath('data') // todo lo del formulario vive dentro de $this->data
             ->schema([
                 Forms\Components\TextInput::make('title')
                     ->label('Título')
@@ -68,52 +69,24 @@ class MultimediaPage extends Page
                 Forms\Components\Builder::make('blocks')
                     ->label('Contenido')
                     ->blocks([
-
                         Forms\Components\Builder\Block::make('text')
-                            ->schema([
-                                Forms\Components\Textarea::make('content'),
-                            ]),
+                            ->schema([Forms\Components\Textarea::make('content')]),
 
                         Forms\Components\Builder\Block::make('image')
                             ->schema([
-                                Forms\Components\FileUpload::make('images')
+                                Forms\Components\FileUpload::make('images') // cambia de singular a plural
                                     ->label('Imágenes')
                                     ->image()
                                     ->directory('landing-images')
-                                    ->multiple(),
+                                    ->multiple(), // permite subir varias imágenes
                             ]),
 
-                        Block::make('video')
-                            ->schema([
-                                Forms\Components\Select::make('data.source')
-                                    ->label('Tipo de video')
-                                    ->options([
-                                        'local' => 'Video propio (MP4)',
-                                        'youtube' => 'YouTube',
-                                        'vimeo' => 'Vimeo',
-                                    ])
-                                    ->required()
-                                    ->reactive(),
-
-                                Forms\Components\FileUpload::make('data.file')
-                                    ->label('Archivo de video')
-                                    ->directory('landing-videos')
-                                    ->acceptedFileTypes(['video/mp4', 'video/webm'])
-                                    ->visible(fn ($get) => $get('data.source') === 'local')
-                                    ->required(fn ($get) => $get('data.source') === 'local'),
-
-                                Forms\Components\TextInput::make('data.url')
-                                    ->label('URL del video')
-                                    ->placeholder('https://www.youtube.com/watch?v=...')
-                                    ->visible(fn ($get) => in_array($get('data.source'), ['youtube', 'vimeo']))
-                                    ->required(fn ($get) => in_array($get('data.source'), ['youtube', 'vimeo'])),
-
-                            ]),
-
+                        Forms\Components\Builder\Block::make('video')
+                            ->schema([Forms\Components\TextInput::make('embed_url')->url()]),
                     ])
                     ->columnSpanFull()
-                    ->reactive()
-                    ->statePath('blocks'),
+                    ->reactive()           // sincroniza automáticamente con $this->data
+                    ->statePath('blocks'), // apunta directamente al array de bloques dentro de data
 
                 ViewField::make('preview')
                     ->label('Vista previa')

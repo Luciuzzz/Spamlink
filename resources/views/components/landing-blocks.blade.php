@@ -167,45 +167,40 @@
             {{-- BLOQUE DE VIDEO --}}
 @case('video')
     @php
-        $data = $block['data'] ?? [];
-        $source = $data['source'] ?? null;
-        $url = null;
+        $url = $block['data']['embed_url'] ?? null;
 
-        if ($source === 'youtube' && !empty($data['url'])) {
-            parse_str(parse_url($data['url'], PHP_URL_QUERY), $params);
-            if (!empty($params['v'])) {
-                $url = "https://www.youtube.com/embed/{$params['v']}?autoplay=1&mute=1&loop=1&playsinline=1";
+        if ($url) {
+            // YouTube normal
+            if (str_contains($url, 'youtube.com/watch?v=')) {
+                parse_str(parse_url($url, PHP_URL_QUERY), $params);
+                $videoId = $params['v'] ?? null;
+                $url = $videoId
+                    ? "https://www.youtube.com/embed/$videoId"
+                    : null;
             }
-        }
+            // YouTube corto
+            elseif (str_contains($url, 'youtu.be/')) {
+                $videoId = trim(parse_url($url, PHP_URL_PATH), '/');
+                $url = "https://www.youtube.com/embed/$videoId";
+            }
 
-        if ($source === 'vimeo' && !empty($data['url'])) {
-            if (preg_match('/vimeo\.com\/(\d+)/', $data['url'], $m)) {
-                $url = "https://player.vimeo.com/video/{$m[1]}?autoplay=1&muted=1&loop=1";
+            // Parámetros de autoplay (mute obligatorio)
+            if ($url) {
+                $url .= '?autoplay=1&mute=1&playsinline=1&controls=1&rel=0&modestbranding=1';
             }
         }
     @endphp
 
-    <div class="w-full flex justify-center">
-        @if($source === 'local' && !empty($data['file']))
-            <video
-                src="{{ asset('storage/'.$data['file']) }}"
-                autoplay
-                muted
-                loop
-                playsinline
-                controls
-                class="max-w-full max-h-[70vh] rounded-xl shadow-lg">
-            </video>
-
-        @elseif($url)
+    @if($url)
+        <div class="aspect-video w-full max-w-xl mx-auto rounded-xl overflow-hidden">
             <iframe
                 src="{{ $url }}"
-                class="aspect-video w-full max-w-4xl rounded-xl shadow-lg"
-                allow="autoplay; encrypted-media"
-                allowfullscreen>
-            </iframe>
-        @endif
-    </div>
+                class="w-full h-full"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+        </div>
+    @endif
 @break
 
         @endswitch
