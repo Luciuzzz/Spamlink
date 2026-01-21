@@ -85,9 +85,7 @@
     @endif
 </header>
 
-<main class="max-w-md mx-auto px-4 py-10">
-
-    {{-- Header --}}
+<main >{{-- class="max-w-md mx-auto px-4 py-10" --}}
     <section class="text-center">
         <h1 class="text-3xl font-bold">{{ $settings?->company_name ?? 'Empresa' }}</h1>
 
@@ -106,7 +104,7 @@
     </section>
 
     {{-- Links --}}
-<section class="mt-8 space-y-4">
+<section class="mt-8 space-y-4 max-w-md mx-auto px-4 py-10">
     @forelse ($links as $record)
 
         <a href="{{ $record->full_url }}"
@@ -114,7 +112,9 @@
            rel="noopener"
            class="group block w-full rounded-xl px-4 py-3
                   bg-white/15 hover:bg-white/25
-                  border border-white/20 backdrop-blur transition-all duration-200">
+                  border border-white/20 backdrop-blur
+                  transform transition-all duration-300
+                  hover:scale-105 hover:shadow-lg">
 
             <div class="flex items-center gap-3">
 
@@ -124,27 +124,33 @@
                     <img
                         src="{{ asset('storage/' . $record->icon_path) }}"
                         alt="{{ $record->name }}"
-                        class="h-6 w-6 object-contain"
+                        class="h-6 w-6 object-contain
+                               transition-transform duration-300
+                               group-hover:scale-110"
                     >
 
                 @elseif (!empty($record->icon_class))
                     {{-- Ícono Font Awesome --}}
                     <i class="{{ $record->icon_class }}"
-                       style="font-size: 1.4rem; color: {{ $record->icon_color }}"></i>
+                       style="font-size: 1.4rem; color: {{ $record->icon_color }}"
+                       class="transition-transform duration-300 group-hover:scale-110"></i>
 
                 @else
                     {{-- Fallback --}}
                     <i class="fa-solid fa-link text-white/60"
-                       style="font-size: 1.4rem"></i>
+                       style="font-size: 1.4rem"
+                       class="transition-transform duration-300 group-hover:scale-110"></i>
                 @endif
 
                 {{-- NOMBRE --}}
-                <div class="flex-1 font-medium">
+                <div class="flex-1 font-medium transition-colors duration-300
+                            group-hover:text-white">
                     {{ $record->name }}
                 </div>
 
                 {{-- ACCIÓN --}}
                 <div class="text-xs uppercase tracking-widest text-white/40
+                            transition-colors duration-300
                             group-hover:text-white/80">
                     Abrir
                 </div>
@@ -154,14 +160,19 @@
 
     @empty
         <div class="text-center text-white/80 text-sm py-10
-                    bg-white/5 rounded-xl border border-dashed border-white/20">
+                    bg-white/5 rounded-xl border border-dashed border-white/20
+                    max-w-md mx-auto px-4 py-10">
             No hay enlaces configurados todavía.
         </div>
     @endforelse
 </section>
-
+{{-- BLOQUES MULTIMEDIA --}}
+    @if(isset($multimedia))
+        <x-landing-blocks :blocks="$multimedia->data['blocks'] ?? []" />
+    @endif
 {{-- Formulario de contacto --}}
-    <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10">
+    <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10
+                    max-w-md mx-auto px-4 py-10">
         <h2 class="text-lg font-bold mb-3">Contacto</h2>
 
         <form method="POST" action="{{ isset($user) ? route('landing.contact', $user->username) : route('landing.contact') }}">
@@ -184,19 +195,18 @@
             </button>
         </form>
     </section>
+</main>
+{{-- Mapa FULL --}}
+<section class="mt-8">
+    <h2 class="text-lg font-bold mb-3 text-center">Ubicación</h2>
 
-    {{-- Mapa --}}
-    <section class="mt-8 z-0">
-        <h2 class="text-lg font-bold mb-3 px-4">Ubicación</h2>
-    </section>
-
-    <div class="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden">
+    <div class="w-screen flex justify-center overflow-x-hidden">
         <div
             id="mapPanel"
-            class="h-[50vh] w-full border border-white/20 rounded-xl z-0">
+            class="h-[50vh] w-[90vw] border border-white/20 rounded-xl z-0">
         </div>
     </div>
-</main>
+</section>
 
 {{-- Footer --}}
 <footer id="landingFooter" class="relative w-full mt-12 bg-black/40 backdrop-blur border-t border-white/10 text-white text-sm">
@@ -232,10 +242,16 @@
 {{-- Botones flotantes --}}
 <a id="whatsappBtn" href="https://wa.me/{{ preg_replace('/\D+/', '', $settings->whatsapp_number ?? '') }}"
    target="_blank" rel="noopener"
-   class="fixed right-6 z-50 w-14 h-14 flex items-center justify-center 
+   class="fgroup fixed right-6 z-50 w-14 h-14 flex items center justifycenter
+            bg-[#25D366] text-white rounded-full
+            backdrop-blur flex items-center gap-2 px-4 py-2
+            shadow-xl hover:shadow-lg
+            transition-all duration-300 ease-in-out
+            hover:scale-105">
+          {{-- fixed right-6 z-50 w-14 h-14 flex items-center justify-center 
           bg-[#25D366] text-white rounded-full shadow-xl
           transition-transform duration-500 ease-in-out
-          hover:scale-110">
+          hover:scale-110--}}
 
     <i class="fa-brands fa-whatsapp text-[28px] 
               transition-transform duration-500 ease-in-out
@@ -244,7 +260,7 @@
 
 <button id="shareBtn"
     class="group fixed left-6 bottom-6 z-50 bg-white text-black
-           border border-white/20 backdrop-blur rounded-xl
+           border border-black backdrop-blur rounded-xl
            flex items-center gap-2 px-4 py-2
            shadow-md hover:shadow-lg
            transition-all duration-300 ease-in-out
@@ -254,7 +270,7 @@
     Compartir
 
     <!-- Icono Font Awesome -->
-    <i class="fa-solid fa-share-nodes text-lg
+    <i class="fa-solid fa-retweet text-lg
               transition-transform duration-700 ease-in-out
               group-hover:rotate-[360deg]"></i>
 </button>

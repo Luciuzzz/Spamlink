@@ -22,6 +22,8 @@ class ContactMessageResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
+    protected static ?string $navigationLabel = 'Mensajes de Contacto';
+
     public static function form(Forms\Form $form): Forms\Form
     {
         return $form

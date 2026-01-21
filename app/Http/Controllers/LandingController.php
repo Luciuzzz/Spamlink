@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\ContactMessage;
 use App\Models\Setting;
 use App\Models\SocialLink;
+use App\Models\LandingSection;
+
 
 
 class LandingController extends Controller
@@ -15,11 +17,16 @@ class LandingController extends Controller
     {
         $settings = Setting::first();
         $links = SocialLink::where('is_active', true)->orderBy('order')->get();
+        $multimedia = LandingSection::where('slug', 'multimedia')
+            ->where('is_active', true)
+            ->first();
+
 
         return view('landing', [
             'user' => null,
             'settings' => $settings,
             'links' => $links,
+            'multimedia' => $multimedia,
         ]);
     }
 
@@ -33,11 +40,15 @@ class LandingController extends Controller
             ->where('is_active', true)
             ->orderBy('order')
             ->get();
+        $multimedia = LandingSection::where('slug', 'multimedia')
+            ->where('is_active', true)
+            ->first();
 
         return view('landing', [
             'user' => $user,
             'settings' => $settings,
             'links' => $links,
+            'multimedia' => $multimedia
         ]);
     }
 }
