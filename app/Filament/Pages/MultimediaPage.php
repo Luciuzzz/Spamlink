@@ -70,7 +70,30 @@ class MultimediaPage extends Page
                     ->label('Contenido')
                     ->blocks([
                         Forms\Components\Builder\Block::make('text')
-                            ->schema([Forms\Components\Textarea::make('content')]),
+                            ->schema([
+                                Forms\Components\RichEditor::make('content')
+                                    ->label('Contenido')
+                                    ->toolbarButtons([
+                                        'bold',        // negrita
+                                        'italic',      // cursiva
+                                        'underline',   // subrayado
+                                        'strike',      // tachado
+                                        'h1',          // encabezado grande
+                                        'h2',          // encabezado mediano
+                                        'h3',          // encabezado pequeño
+                                        'bulletList',  // lista con viñetas
+                                        'orderedList', // lista numerada
+                                        'link',        // enlace
+                                        'redo',
+                                        'undo',
+                                    ])
+                                    ->required(),
+
+                                Forms\Components\ColorPicker::make('text_color')
+                                    ->label('Color de texto')
+                                    ->default('#ffffff'),
+                            ]),
+
 
                         Forms\Components\Builder\Block::make('image')
                             ->schema([
