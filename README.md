@@ -22,9 +22,8 @@ Antes de levantar el proyecto, asegúrate de tener instalado:
 
 1. **Clonar el repositorio:**
 
-        
+        cd <NOMBRE_DEL_PROYECTO>        
         git clone https://github.com/Luciuzzz/Spamlink.git
-        cd <NOMBRE_DEL_PROYECTO>
 
 2. **Instalar dependencias PHP:**
 
