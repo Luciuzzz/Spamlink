@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
 use App\Forms\Components\MapPicker;
 use GuzzleHttp\Client;
+use Livewire\Attributes\Url;
+
 
 class MySettings extends Page
 {
@@ -19,14 +21,26 @@ class MySettings extends Page
 
 
     public ?array $data = [];
+    #[Url(as: 'user')]
+    public int|string|null $user = null;
 
     public function mount(): void
     {
-        $userId = Auth::id();
+        //dd($this->user);
+
+        if (Auth::user()->role !== 'superadmin') {
+            $this->user = Auth::id();
+        }
+
+        if (!$this->user) {
+            $this->user = Auth::id();
+        }
+
         $setting = Setting::firstOrCreate(
-            ['user_id' => $userId],
+            ['user_id' => (int) $this->user],
             ['company_name' => 'Empresa']
         );
+
         $this->form->fill($setting->toArray());
     }
 
@@ -162,7 +176,7 @@ class MySettings extends Page
     public function save(): void
 {
     $validated = $this->form->getState();
-    $userId = Auth::id();
+    $userId = $this->user;
 
     $setting = Setting::firstOrNew(['user_id' => $userId]);
     $setting->fill($validated);
@@ -211,9 +225,4 @@ class MySettings extends Page
         }
     }
 
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['user_id'] = Auth::id();
-        return $data;
-    }
 }

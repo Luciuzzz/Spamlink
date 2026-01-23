@@ -20,18 +20,27 @@ class MultimediaPage extends Page
     protected static ?string $slug = 'landing/multimedia';
     protected static string $view = 'filament.pages.multimedia-page';
 
-    public array $data = []; // estado principal del formulario
+    public array $data = [];
+    public ?int $userId = null;
 
     public function mount(): void
     {
+        $authUser = Auth::user();
+
+        if ($authUser->role === 'superadmin' && request()->has('user')) {
+            $this->userId = (int) request()->get('user');
+        } else {
+            $this->userId = $authUser->id;
+        }
+
         $section = LandingSection::where('slug', 'multimedia')
-            ->where('user_id', Auth::id())
+            ->where('user_id', $this->userId)
             ->first();
 
         if (! $section) {
             $section = LandingSection::create([
                 'slug' => 'multimedia',
-                'user_id' => Auth::id(),
+                'user_id' => $this->userId,
                 'title' => 'Sección Multimedia',
                 'description' => '',
                 'is_active' => true,
@@ -39,7 +48,6 @@ class MultimediaPage extends Page
             ]);
         }
 
-        // Llenamos $data con los valores de la DB
         $this->data = [
             'title' => $section->title,
             'description' => $section->description,
@@ -47,14 +55,13 @@ class MultimediaPage extends Page
             'blocks' => $section->data['blocks'] ?? [],
         ];
 
-        // Llenamos el formulario con $data
         $this->form->fill($this->data);
     }
 
     public function form(Form $form): Form
     {
         return $form
-            ->statePath('data') // todo lo del formulario vive dentro de $this->data
+            ->statePath('data')
             ->schema([
                 Forms\Components\TextInput::make('title')
                     ->label('Título')
@@ -73,48 +80,37 @@ class MultimediaPage extends Page
                             ->schema([
                                 Forms\Components\RichEditor::make('content')
                                     ->label('Contenido')
-                                    ->toolbarButtons([
-                                        'bold',        // negrita
-                                        'italic',      // cursiva
-                                        'underline',   // subrayado
-                                        'strike',      // tachado
-                                        'h1',          // encabezado grande
-                                        'h2',          // encabezado mediano
-                                        'h3',          // encabezado pequeño
-                                        'bulletList',  // lista con viñetas
-                                        'orderedList', // lista numerada
-                                        'link',        // enlace
-                                        'redo',
-                                        'undo',
-                                    ])
                                     ->required(),
-
                                 Forms\Components\ColorPicker::make('text_color')
                                     ->label('Color de texto')
                                     ->default('#ffffff'),
                             ]),
 
-
                         Forms\Components\Builder\Block::make('image')
                             ->schema([
-                                Forms\Components\FileUpload::make('images') // cambia de singular a plural
+                                Forms\Components\FileUpload::make('images')
                                     ->label('Imágenes')
                                     ->image()
                                     ->directory('landing-images')
-                                    ->multiple(), // permite subir varias imágenes
+                                    ->multiple(),
                             ]),
 
                         Forms\Components\Builder\Block::make('video')
-                            ->schema([Forms\Components\TextInput::make('embed_url')->url()]),
+                            ->schema([
+                                Forms\Components\TextInput::make('embed_url')
+                                    ->label('URL del video')
+                                    ->url(),
+                            ]),
                     ])
                     ->columnSpanFull()
-                    ->reactive()           // sincroniza automáticamente con $this->data
-                    ->statePath('blocks'), // apunta directamente al array de bloques dentro de data
+                    ->reactive(),
 
                 ViewField::make('preview')
                     ->label('Vista previa')
                     ->view('components.landing-blocks')
-                    ->viewData(['blocks' => fn () => $this->data['blocks'] ?? []])
+                    ->viewData([
+                        'blocks' => fn () => $this->data['blocks'] ?? [],
+                    ])
                     ->columnSpanFull(),
             ]);
     }
@@ -126,7 +122,7 @@ class MultimediaPage extends Page
         LandingSection::updateOrCreate(
             [
                 'slug' => 'multimedia',
-                'user_id' => Auth::id(),
+                'user_id' => $this->userId,
             ],
             [
                 'title' => $state['title'] ?? null,
@@ -139,8 +135,13 @@ class MultimediaPage extends Page
         );
 
         Notification::make()
-            ->title('Contenido guardado correctamente')
+            ->title('Multimedia guardada correctamente')
             ->success()
             ->send();
+    }
+
+    public static function canAccess(): bool
+    {
+        return Auth::check();
     }
 }

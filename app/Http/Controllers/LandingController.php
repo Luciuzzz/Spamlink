@@ -8,19 +8,14 @@ use App\Models\Setting;
 use App\Models\SocialLink;
 use App\Models\LandingSection;
 
-
-
 class LandingController extends Controller
 {
     // "/" -> login (nunca mostrar landing global)
-     public function show()
+    public function show()
     {
         $settings = Setting::first();
         $links = SocialLink::where('is_active', true)->orderBy('order')->get();
-        $multimedia = LandingSection::where('slug', 'multimedia')
-            ->where('is_active', true)
-            ->first();
-
+        $multimedia = null; // no mostrar multimedia global
 
         return view('landing', [
             'user' => null,
@@ -40,7 +35,10 @@ class LandingController extends Controller
             ->where('is_active', true)
             ->orderBy('order')
             ->get();
+
+        // Filtramos multimedia solo del usuario
         $multimedia = LandingSection::where('slug', 'multimedia')
+            ->where('user_id', $user->id)
             ->where('is_active', true)
             ->first();
 

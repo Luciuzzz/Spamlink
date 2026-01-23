@@ -138,7 +138,7 @@
                     <style>
                         .slider-container {
                             max-width: 100%;
-                            border-radius: 1rem; /* rounded-xl */
+                            border-radius: 1rem;
                         }
                         .slide {
                             opacity: 0;
@@ -215,6 +215,7 @@
                     </div>
                 @endif
             @break
+
         @endswitch
 
     @endforeach
