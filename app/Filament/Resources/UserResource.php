@@ -19,6 +19,7 @@ class UserResource extends Resource
     protected static ?string $navigationLabel = 'Usuarios';
     protected static ?string $pluralLabel = 'Usuarios';
     protected static ?string $slug = 'usuarios';
+    protected static ?int $navigationSort = 10;
 
     public static function canViewAny(): bool
     {
@@ -60,7 +61,6 @@ class UserResource extends Resource
                     Tables\Actions\Action::make('multimedia')
                         ->label('Multimedia')
                         ->icon('heroicon-o-photo')
-                        ->color('indigo')
                         ->url(fn ($record) =>
                             MultimediaPage::getUrl(['user' => $record->id])
                         )

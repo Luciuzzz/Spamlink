@@ -20,9 +20,11 @@ class ContactMessageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $navigationLabel = 'Mensajes de Contacto';
+
+    protected static ?string $pluralLabel = 'Mensajes Recibidos';
 
     public static function form(Forms\Form $form): Forms\Form
     {

@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\Auditable; // Trait de auditoría
 
 class LandingSection extends Model
 {
+    //use Auditable; // Activamos auditoría
+
     protected $fillable = [
         'user_id',
         'slug',

@@ -9,6 +9,7 @@ use Filament\Forms;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
 use App\Forms\Components\MapPicker;
+use App\Models\ChangeLog;
 use GuzzleHttp\Client;
 use Livewire\Attributes\Url;
 
@@ -18,6 +19,8 @@ class MySettings extends Page
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static string $view = 'filament.pages.my-settings';
     protected static ?string $navigationLabel = 'Mi Configuración';
+    protected static ?string $title = 'Configuración';
+    protected static ?int $navigationSort = 1;
 
 
     public ?array $data = [];
@@ -174,35 +177,60 @@ class MySettings extends Page
     }
 
     public function save(): void
-{
-    $validated = $this->form->getState();
-    $userId = $this->user;
+    {
+        $userId = $this->user;
+        $validated = $this->form->getState();
 
-    $setting = Setting::firstOrNew(['user_id' => $userId]);
-    $setting->fill($validated);
-    $setting->user_id = $userId;
+        $setting = Setting::firstOrNew(['user_id' => $userId]);
+        
+        // Guardamos el estado previo para comparar cambios
+        $before = $setting->toArray();
+        $after = $validated;
 
-    // Guardar cualquier texto escrito en location_text
-    $setting->location_text = $validated['location_text'] ?? null;
+        $setting->fill($validated);
+        $setting->user_id = $userId;
+        $setting->location_text = $validated['location_text'] ?? null;
 
-    // Si hay lat/lng, generar dirección legible si address_text está vacío
-    if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
-        $lat = $validated['latitude'];
-        $lng = $validated['longitude'];
+        // Si hay lat/lng, generar dirección legible si address_text está vacío
+        if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
+            $lat = $validated['latitude'];
+            $lng = $validated['longitude'];
 
-        if (empty($validated['address_text'])) {
-            $address = $this->getAddressFromCoordinates($lat, $lng);
-            $setting->address_text = $address ?? '';
+            if (empty($validated['address_text'])) {
+                $address = $this->getAddressFromCoordinates($lat, $lng);
+                $setting->address_text = $address ?? '';
+            }
         }
+
+        // --- Registro en ChangeLog ---
+        $changes = [];
+        foreach ($after as $key => $newValue) {
+            $oldValue = $before[$key] ?? null;
+
+            if ($oldValue != $newValue) {
+                $changes[$key] = [
+                    'from' => $oldValue,
+                    'to'   => $newValue,
+                ];
+            }
+        }
+
+        if (!empty($changes)) {
+            \App\Models\ChangeLog::create([
+                'user_id'    => $userId,
+                'model_type' => Setting::class,
+                'model_id'   => $setting->id,
+                'action'     => $setting->wasRecentlyCreated ? 'create' : 'update',
+                'changes'    => $changes,
+            ]);
+        }
+
+        Notification::make()
+            ->title('Configuración guardada')
+            ->success()
+            ->send();
     }
 
-    $setting->save();
-
-    Notification::make()
-        ->title('Configuración guardada')
-        ->success()
-        ->send();
-}
 
     protected function getAddressFromCoordinates($lat, $lng): ?string
     {

@@ -11,7 +11,7 @@ Route::get('/landing/{username}', [LandingController::class, 'showUser'])
     ->name('landing.show');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return redirect('/admin'); // ✅ Redirige correctamente
 })
 ->middleware(['auth', 'verified'])
 ->name('dashboard');

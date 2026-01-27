@@ -18,7 +18,9 @@ class MultimediaPage extends Page
     protected static ?string $navigationIcon = 'heroicon-o-photo';
     protected static ?string $navigationLabel = 'Multimedia';
     protected static ?string $slug = 'landing/multimedia';
+    protected static ?string $title = 'Editor de Multimedia';
     protected static string $view = 'filament.pages.multimedia-page';
+    protected static ?int $navigationSort = 2;
 
     public array $data = [];
     public ?int $userId = null;
@@ -119,20 +121,51 @@ class MultimediaPage extends Page
     {
         $state = $this->form->getState();
 
-        LandingSection::updateOrCreate(
-            [
-                'slug' => 'multimedia',
-                'user_id' => $this->userId,
+        // Buscamos la sección multimedia del usuario
+        $section = LandingSection::firstOrNew([
+            'slug' => 'multimedia',
+            'user_id' => $this->userId,
+        ]);
+
+        // Guardamos el estado previo para el log
+        $before = $section->toArray();
+        $after = [
+            'title'      => $state['title'] ?? $section->title,
+            'description'=> $state['description'] ?? $section->description,
+            'is_active'  => $state['is_active'] ?? $section->is_active,
+            'data'       => [
+                'blocks' => $state['blocks'] ?? [],
             ],
-            [
-                'title' => $state['title'] ?? null,
-                'description' => $state['description'] ?? null,
-                'is_active' => $state['is_active'] ?? true,
-                'data' => [
-                    'blocks' => $state['blocks'] ?? [],
-                ],
-            ]
-        );
+        ];
+
+        // Actualizamos los campos
+        $section->title = $after['title'];
+        $section->description = $after['description'];
+        $section->is_active = $after['is_active'];
+        $section->data = $after['data'];
+        $section->save();
+
+        // --- Registro en ChangeLog ---
+        $changes = [];
+        foreach ($after as $key => $newValue) {
+            $oldValue = $before[$key] ?? null;
+            if ($oldValue != $newValue) {
+                $changes[$key] = [
+                    'from' => $oldValue,
+                    'to'   => $newValue,
+                ];
+            }
+        }
+
+        if (!empty($changes)) {
+            \App\Models\ChangeLog::create([
+                'user_id'    => $this->userId,
+                'model_type' => LandingSection::class,
+                'model_id'   => $section->id,
+                'action'     => $section->wasRecentlyCreated ? 'create' : 'update',
+                'changes'    => $changes,
+            ]);
+        }
 
         Notification::make()
             ->title('Multimedia guardada correctamente')
