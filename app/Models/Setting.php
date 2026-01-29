@@ -3,11 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Traits\Auditable; // Trait de auditoría
 
 class Setting extends Model
 {
-    use Auditable; // Activamos auditoría
 
     protected $table = 'settings';
 
