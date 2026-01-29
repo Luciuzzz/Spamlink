@@ -6,10 +6,11 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Client\RequestException;
 
 class LoginRequest extends FormRequest
 {
@@ -23,20 +24,30 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-            'cf-turnstile-response' => ['required'], // required básico
+            'cf-turnstile-response' => ['required'],
         ];
     }
 
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $validatorTurnstile = Validator::make(
-                ['cf-turnstile-response' => $this->input('cf-turnstile-response')],
-                ['cf-turnstile-response' => [new Turnstile()]]
-            );
+            try {
+                $validatorTurnstile = Validator::make(
+                    ['cf-turnstile-response' => $this->input('cf-turnstile-response')],
+                    ['cf-turnstile-response' => [new Turnstile()]]
+                );
 
-            if ($validatorTurnstile->fails()) {
-                $validator->errors()->add('cf-turnstile-response', 'Captcha no válido. Intenta de nuevo.');
+                if ($validatorTurnstile->fails()) {
+                    $validator->errors()->add(
+                        'cf-turnstile-response',
+                        'Captcha no válido. Intenta de nuevo.'
+                    );
+                }
+            } catch (RequestException $e) {
+                $validator->errors()->add(
+                    'cf-turnstile-response',
+                    'Error de configuración del captcha.'
+                );
             }
         });
     }
@@ -73,6 +84,6 @@ class LoginRequest extends FormRequest
 
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
+        return Str::transliterate(Str::lower($this->input('email')) . '|' . $this->ip());
     }
 }

@@ -3,9 +3,10 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rules;
 use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Client\RequestException;
 
 class RegisterRequest extends FormRequest
 {
@@ -19,21 +20,31 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-            'cf-turnstile-response' => ['required'], // required básico
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'cf-turnstile-response' => ['required'],
         ];
     }
 
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $validatorTurnstile = Validator::make(
-                ['cf-turnstile-response' => $this->input('cf-turnstile-response')],
-                ['cf-turnstile-response' => [new Turnstile()]]
-            );
+            try {
+                $validatorTurnstile = Validator::make(
+                    ['cf-turnstile-response' => $this->input('cf-turnstile-response')],
+                    ['cf-turnstile-response' => [new Turnstile()]]
+                );
 
-            if ($validatorTurnstile->fails()) {
-                $validator->errors()->add('cf-turnstile-response', 'Captcha no válido. Intenta de nuevo.');
+                if ($validatorTurnstile->fails()) {
+                    $validator->errors()->add(
+                        'cf-turnstile-response',
+                        'Captcha no válido. Intenta de nuevo.'
+                    );
+                }
+            } catch (RequestException $e) {
+                $validator->errors()->add(
+                    'cf-turnstile-response',
+                    'Error de configuración del captcha.'
+                );
             }
         });
     }

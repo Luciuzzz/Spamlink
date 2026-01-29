@@ -202,6 +202,8 @@ class MySettings extends Page
             }
         }
 
+        $setting->save();
+
         // --- Registro en ChangeLog ---
         $changes = [];
         foreach ($after as $key => $newValue) {

@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <!-- Estado de la sesión (ej. mensaje de contraseña restablecida) -->
+    <!-- Estado de la sesión -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <form method="POST" action="{{ route('login') }}">
@@ -22,7 +22,9 @@
                     'border-gray-300' => !$errors->has('email'),
                 ])
             />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            @error('email')
+                <span class="text-sm text-red-600 mt-1 block">{{ $message }}</span>
+            @enderror
         </div>
 
         <!-- Password -->
@@ -40,24 +42,29 @@
                     'border-gray-300' => !$errors->has('password'),
                 ])
             />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            @error('password')
+                <span class="text-sm text-red-600 mt-1 block">{{ $message }}</span>
+            @enderror
         </div>
 
         <!-- Remember Me -->
         <div class="block mt-4">
             <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
+                <input id="remember_me" type="checkbox" name="remember"
+                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
                 <span class="ms-2 text-sm text-amber-500">{{ __('Recordarme') }}</span>
             </label>
         </div>
 
-        <!-- Cloudflare Turnstile -->
+        <!-- Turnstile -->
         <div class="mt-4 flex flex-col items-center">
             <x-turnstile :site-key="config('cloudflare-turnstile.site_key') ?? ''" />
-            <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
+            @error('cf-turnstile-response')
+                <span class="text-sm text-red-600 mt-1 block">{{ $message }}</span>
+            @enderror
         </div>
 
-        <!-- Botón de Login grande -->
+        <!-- Botón Login -->
         <div class="mt-6">
             <x-primary-button class="w-full justify-center py-3">
                 {{ __('Log in') }}
@@ -76,16 +83,5 @@
                 </a>
             @endif
         </div>
-
-        <!-- Errores generales -->
-        @if ($errors->any())
-            <div class="mt-4 rounded-md bg-red-50 p-4">
-                <ul class="text-sm text-red-600 space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>• {{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
     </form>
 </x-guest-layout>
