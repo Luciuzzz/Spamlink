@@ -159,7 +159,7 @@
         </a>
 
     @empty
-        <div class="text-center text-white/80 text-sm py-10
+        <div class="text-center text-white/80 text-sm
                     bg-white/5 rounded-xl border border-dashed border-white/20
                     max-w-md mx-auto px-4 py-10">
             No hay enlaces configurados todavía.
@@ -171,8 +171,7 @@
         <x-landing-blocks :blocks="$multimedia->data['blocks'] ?? []" />
     @endif
 {{-- Formulario de contacto --}}
-    <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10
-                    max-w-md mx-auto px-4 py-10">
+    <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10 max-w-md mx-auto px-4 py-10">
         <h2 class="text-lg font-bold mb-3">Contacto</h2>
 
         <form method="POST" action="{{ isset($user) ? route('landing.contact', $user->username) : route('landing.contact') }}">
@@ -188,13 +187,19 @@
                 placeholder="¿En qué puedo ayudarte?"
                 class="w-full mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl"></textarea>
 
-            <div id="turnstile-container" class="cf-turnstile mb-4" data-sitekey="{{ config('services.turnstile.site_key') }}"></div>
+            {{-- Turnstile --}}
+            <div class="mt-4 flex flex-col items-center">
+                <x-turnstile />
+                <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
+            </div>
 
-            <button class="w-full bg-white text-black font-bold py-3 rounded-xl">
+
+            <button class="w-full bg-white text-black font-bold py-3 rounded-xl mt-4">
                 Enviar
             </button>
         </form>
     </section>
+
 </main>
 {{-- Mapa FULL --}}
 <section class="mt-8">
@@ -240,18 +245,15 @@
 </footer>
 
 {{-- Botones flotantes --}}
-<a id="whatsappBtn" href="https://wa.me/{{ preg_replace('/\D+/', '', $settings->whatsapp_number ?? '') }}"
+<a id="whatsappBtn" 
+   href="https://wa.me/{{ preg_replace('/\D+/', '', $settings->whatsapp_number ?? '') }}"
    target="_blank" rel="noopener"
-   class="fgroup fixed right-6 z-50 w-14 h-14 flex items center justifycenter
-            bg-[#25D366] text-white rounded-full
-            backdrop-blur flex items-center gap-2 px-4 py-2
-            shadow-xl hover:shadow-lg
-            transition-all duration-300 ease-in-out
-            hover:scale-105">
-          {{-- fixed right-6 z-50 w-14 h-14 flex items-center justify-center 
-          bg-[#25D366] text-white rounded-full shadow-xl
-          transition-transform duration-500 ease-in-out
-          hover:scale-110--}}
+   class="fixed right-6 bottom-6 z-50 w-14 h-14 flex items-center justify-center
+          bg-[#25D366] text-white rounded-full
+          shadow-xl backdrop-blur-md gap-2
+          px-4 py-2
+          transition-all duration-300 ease-in-out
+          hover:shadow-lg hover:scale-105">
 
     <i class="fa-brands fa-whatsapp text-[28px] 
               transition-transform duration-500 ease-in-out

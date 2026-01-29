@@ -17,8 +17,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Support\Facades\FilamentView;
-use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -28,7 +26,9 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandLogo(asset('icons/logo.png'),'SpamLink')
+            // Llamamos a la vista en lugar de solo al asset
+            ->brandLogo(fn () => view('filament.admin.logo'))
+            // Opcional: El nombre sigue siendo útil para el título de la pestaña (title tag)
             ->brandName('SpamLink')
 
             ->colors([
@@ -71,10 +71,9 @@ class AdminPanelProvider extends PanelProvider
             ])
 
             ->widgets([
-            \App\Filament\Widgets\MyLandingButton::class,
-            Widgets\AccountWidget::class,
-            Widgets\FilamentInfoWidget::class,
+                \App\Filament\Widgets\MyLandingButton::class,
+                Widgets\AccountWidget::class,
+                Widgets\FilamentInfoWidget::class,
             ]);
     }
 }
-
