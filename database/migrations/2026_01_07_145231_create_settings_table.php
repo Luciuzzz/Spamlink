@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->string('company_name');
+            $table->string('company_name')->nullable();
             $table->string('slogan')->nullable();
             $table->text('description')->nullable();
             $table->string('bg_desktop_path')->nullable();
@@ -30,5 +30,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('settings');
+            
     }
 };

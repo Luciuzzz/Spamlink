@@ -17,7 +17,7 @@ class MultimediaPage extends Page
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
     protected static ?string $navigationLabel = 'Multimedia';
-    protected static ?string $slug = 'landing/multimedia';
+    protected static ?string $slug = 'multimedia';
     protected static ?string $title = 'Editor de Multimedia';
     protected static string $view = 'filament.pages.multimedia-page';
     protected static ?int $navigationSort = 2;

@@ -20,6 +20,7 @@ class MySettings extends Page
     protected static string $view = 'filament.pages.my-settings';
     protected static ?string $navigationLabel = 'Mi Configuración';
     protected static ?string $title = 'Configuración';
+    protected static ?string $slug = 'my-settingsS';
     protected static ?int $navigationSort = 1;
 
 
@@ -41,7 +42,7 @@ class MySettings extends Page
 
         $setting = Setting::firstOrCreate(
             ['user_id' => (int) $this->user],
-            ['company_name' => 'Empresa']
+            // ['company_name' => 'Empresa']
         );
 
         $this->form->fill($setting->toArray());
@@ -55,7 +56,7 @@ class MySettings extends Page
                     ->schema([
                         Forms\Components\TextInput::make('company_name')
                             ->label('Nombre de la empresa')
-                            ->required()
+                            // ->required()
                             ->maxLength(255),
 
                         Forms\Components\TextInput::make('slogan')

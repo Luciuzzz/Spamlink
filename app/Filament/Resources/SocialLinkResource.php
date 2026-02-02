@@ -18,6 +18,7 @@ class SocialLinkResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-link';
     protected static ?string $navigationLabel = 'Redes / Links';
     protected static ?string $pluralLabel = 'Enlaces';
+    protected static ?string $slug = 'social-links';
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
