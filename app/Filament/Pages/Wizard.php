@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Setting;
 use App\Models\LandingSection;
@@ -17,37 +18,125 @@ class Wizard extends Page
 
     public int $step = 0;
 
+    /* =========================
+     *  Lifecycle
+     * ========================= */
+
     public function mount(): void
     {
         if (Auth::user()->wizard_completed) {
-            redirect()->route('filament.admin.pages.dashboard');
+            $this->redirectRoute('filament.admin.pages.dashboard');
         }
+
+        $this->step = $this->detectCurrentStep();
     }
 
-    public function canProceed(): bool
+    /* =========================
+     *  Navigation
+     * ========================= */
+
+    public function next(): void
+    {
+        if (! $this->canProceed()) {
+            Notification::make()
+                ->title('Debes completar este paso antes de continuar')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $this->step = min($this->step + 1, 2);
+    }
+
+    public function finish(): void
+    {
+        $userId = Auth::id();
+
+        if (
+            ! $this->checkSections($userId) ||
+            ! $this->checkSocialLinks($userId)
+        ) {
+            Notification::make()
+                ->title('El wizard no está completo')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        Auth::user()
+            ->forceFill(['wizard_completed' => true])
+            ->save();
+
+        $this->redirectRoute('filament.admin.pages.dashboard');
+    }
+
+    /**
+     * SOLO para testing local
+     */
+    public function skipStep(): void
+    {
+        if (! app()->isLocal()) {
+            return;
+        }
+
+        $this->step = min($this->step + 1, 3);
+    }
+
+    /* =========================
+     *  Guards
+     * ========================= */
+
+    protected function canProceed(): bool
     {
         $userId = Auth::id();
 
         return match ($this->step) {
-            0 => $this->checkBasicSettings($userId),
-            1 => $this->checkBranding($userId),
+            0 => $this->checkBasicSettings($userId) && $this->checkBranding($userId),
+            1 => $this->checkSocialLinks($userId),
             2 => $this->checkSections($userId),
-            3 => $this->checkSocialLinks($userId),
             default => false,
         };
     }
 
+    protected function detectCurrentStep(): int
+    {
+        $userId = Auth::id();
+
+        if (! $this->checkBasicSettings($userId) || ! $this->checkBranding($userId)) {
+            return 0;
+        }
+
+        if (! $this->checkSocialLinks($userId)) {
+            return 1;
+        }
+
+        if (! $this->checkSections($userId)) {
+            return 2;
+        }
+
+        return 2;
+    }
+
+    /* =========================
+     *  Step checks
+     * ========================= */
+
     protected function checkBasicSettings(int $userId): bool
     {
         $settings = Setting::where('user_id', $userId)->first();
-        return $settings && !empty($settings->company_name) &&
-               (!empty($settings->description) || !empty($settings->slogan));
+
+        return $settings
+            && ! empty($settings->company_name)
+            && (! empty($settings->description) || ! empty($settings->slogan));
     }
 
     protected function checkBranding(int $userId): bool
     {
-        $settings = Setting::where('user_id', $userId)->first();
-        return $settings && !empty($settings->logo_path);
+        return Setting::where('user_id', $userId)
+            ->whereNotNull('logo_path')
+            ->exists();
     }
 
     protected function checkSections(int $userId): bool
@@ -67,32 +156,4 @@ class Wizard extends Page
             ->whereNotNull('url')
             ->exists();
     }
-
-    public function next()
-    {
-        if (! $this->canProceed()) {
-            $this->notify('danger', 'Debes completar los requisitos de este paso antes de continuar.');
-            return;
-        }
-
-        $this->step++;
-    }
-
-    public function finish()
-    {
-        if (! $this->canProceed()) {
-            $this->notify('danger', 'No puedes finalizar, hay requisitos pendientes.');
-            return;
-        }
-
-        Auth::user()->update(['wizard_completed' => true]);
-
-        $this->redirectRoute('filament.admin.pages.dashboard');
-    }
-
-    public function skipStep()
-    {
-        $this->step = min($this->step + 1, 3); // Avanza al siguiente paso
-    }
-
 }

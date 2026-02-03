@@ -20,6 +20,7 @@ class Setting extends Model
         'latitude',
         'longitude',
         'user_id',
+        'landing_available',
 
         // Branding
         'logo_path',
@@ -30,11 +31,17 @@ class Setting extends Model
         'meta_description',
         'meta_keywords',
         'meta_image_path',
+
+        // Twitter
+        'twitter_title',
+        'twitter_description',
+        'twitter_image_path',
     ];
 
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
+        'landing_available' => 'boolean',
     ];
 
     public function user()

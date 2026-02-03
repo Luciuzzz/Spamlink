@@ -118,60 +118,56 @@ class MultimediaPage extends Page
     }
 
     public function save(): void
-    {
-        $state = $this->form->getState();
+{
+    $state = $this->form->getState();
 
-        // Buscamos la sección multimedia del usuario
-        $section = LandingSection::firstOrNew([
-            'slug' => 'multimedia',
-            'user_id' => $this->userId,
-        ]);
+    $section = LandingSection::firstOrNew([
+        'slug' => 'multimedia',
+        'user_id' => $this->userId,
+    ]);
 
-        // Guardamos el estado previo para el log
-        $before = $section->toArray();
-        $after = [
-            'title'      => $state['title'] ?? $section->title,
-            'description'=> $state['description'] ?? $section->description,
-            'is_active'  => $state['is_active'] ?? $section->is_active,
-            'data'       => [
-                'blocks' => $state['blocks'] ?? [],
-            ],
-        ];
+    $before = $section->toArray();
+    $after = [
+        'title'       => $state['title'] ?? $section->title,
+        'description' => $state['description'] ?? $section->description,
+        'is_active'   => $state['is_active'] ?? $section->is_active,
+        'data'        => ['blocks' => $state['blocks'] ?? []],
+    ];
 
-        // Actualizamos los campos
-        $section->title = $after['title'];
-        $section->description = $after['description'];
-        $section->is_active = $after['is_active'];
-        $section->data = $after['data'];
-        $section->save();
+    $section->title = $after['title'];
+    $section->description = $after['description'];
+    $section->is_active = $after['is_active'];
+    $section->data = $after['data'];
+    $section->save();
 
-        // --- Registro en ChangeLog ---
-        $changes = [];
-        foreach ($after as $key => $newValue) {
-            $oldValue = $before[$key] ?? null;
-            if ($oldValue != $newValue) {
-                $changes[$key] = [
-                    'from' => $oldValue,
-                    'to'   => $newValue,
-                ];
-            }
+    // Registro ChangeLog
+    $changes = [];
+    foreach ($after as $key => $newValue) {
+        $oldValue = $before[$key] ?? null;
+        if ($oldValue != $newValue) {
+            $changes[$key] = ['from' => $oldValue, 'to' => $newValue];
         }
-
-        if (!empty($changes)) {
-            \App\Models\ChangeLog::create([
-                'user_id'    => $this->userId,
-                'model_type' => LandingSection::class,
-                'model_id'   => $section->id,
-                'action'     => $section->wasRecentlyCreated ? 'create' : 'update',
-                'changes'    => $changes,
-            ]);
-        }
-
-        Notification::make()
-            ->title('Multimedia guardada correctamente')
-            ->success()
-            ->send();
     }
+
+    if (!empty($changes)) {
+        \App\Models\ChangeLog::create([
+            'user_id'    => $this->userId,
+            'model_type' => LandingSection::class,
+            'model_id'   => $section->id,
+            'action'     => $section->wasRecentlyCreated ? 'create' : 'update',
+            'changes'    => $changes,
+        ]);
+    }
+
+    Notification::make()
+        ->title('Multimedia guardada correctamente')
+        ->success()
+        ->send();
+
+    if (! Auth::user()->wizard_completed) {
+        $this->redirectRoute('filament.admin.pages.wizard');
+    }
+}
 
     public static function canAccess(): bool
     {

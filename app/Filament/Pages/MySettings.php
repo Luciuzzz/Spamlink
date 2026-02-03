@@ -13,14 +13,13 @@ use App\Models\ChangeLog;
 use GuzzleHttp\Client;
 use Livewire\Attributes\Url;
 
-
 class MySettings extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static string $view = 'filament.pages.my-settings';
     protected static ?string $navigationLabel = 'Mi Configuración';
     protected static ?string $title = 'Configuración';
-    protected static ?string $slug = 'my-settingsS';
+    protected static ?string $slug = 'my-settings';
     protected static ?int $navigationSort = 1;
 
 
@@ -45,7 +44,19 @@ class MySettings extends Page
             // ['company_name' => 'Empresa']
         );
 
-        $this->form->fill($setting->toArray());
+        $data = $setting->toArray();
+
+        if (isset($data['bg_desktop_path']) && $this->isColorValue($data['bg_desktop_path'])) {
+            $data['bg_desktop_color'] = $data['bg_desktop_path'];
+            $data['bg_desktop_path'] = null;
+        }
+
+        if (isset($data['bg_mobile_path']) && $this->isColorValue($data['bg_mobile_path'])) {
+            $data['bg_mobile_color'] = $data['bg_mobile_path'];
+            $data['bg_mobile_path'] = null;
+        }
+
+        $this->form->fill($data);
     }
 
     public function form(Form $form): Form
@@ -57,16 +68,19 @@ class MySettings extends Page
                         Forms\Components\TextInput::make('company_name')
                             ->label('Nombre de la empresa')
                             // ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->helperText('Nombre visible en la landing y metadatos'),
 
                         Forms\Components\TextInput::make('slogan')
                             ->label('Eslogan')
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->helperText('Frase corta debajo del nombre'),
 
                         Forms\Components\Textarea::make('description')
                             ->label('Descripción')
                             ->rows(4)
-                            ->maxLength(2000),
+                            ->maxLength(2000)
+                            ->helperText('Texto principal de la landing'),
 
                         Forms\Components\TextInput::make('whatsapp_number')
                             ->label('WhatsApp')
@@ -80,7 +94,8 @@ class MySettings extends Page
                         MapPicker::make('latitude')
                             ->longitudeField('longitude')
                             ->label('Mapa')
-                            ->required(),
+                            ->required()
+                            ->helperText('Selecciona una ubicación para mostrar dirección'),
                         // Campo del buscador
                         Forms\Components\Field::make('search_location')
                             ->label('Buscar ubicación')
@@ -115,7 +130,8 @@ class MySettings extends Page
                             ->image()
                             ->imageEditor()
                             ->imageEditorAspectRatios(['1:1'])
-                            ->maxSize(2048),
+                            ->maxSize(2048)
+                            ->helperText('PNG/JPG cuadrado recomendado'),
 
                         Forms\Components\FileUpload::make('favicon_path')
                             ->label('Favicon')
@@ -132,12 +148,13 @@ class MySettings extends Page
                         Forms\Components\TextInput::make('meta_title')
                             ->label('Meta title')
                             ->maxLength(70)
-                            ->helperText('Título para Google y redes'),
+                            ->helperText('Título para Google y Open Graph'),
 
                         Forms\Components\Textarea::make('meta_description')
                             ->label('Meta description')
                             ->rows(3)
-                            ->maxLength(160),
+                            ->maxLength(160)
+                            ->helperText('Resumen para buscadores'),
 
                         Forms\Components\TextInput::make('meta_keywords')
                             ->label('Keywords')
@@ -150,7 +167,29 @@ class MySettings extends Page
                             ->image()
                             ->imageEditor()
                             ->imageEditorAspectRatios(['1.91:1'])
-                            ->maxSize(4096),
+                            ->maxSize(4096)
+                            ->helperText('1200x630 recomendado'),
+
+                        Forms\Components\TextInput::make('twitter_title')
+                            ->label('Twitter title')
+                            ->maxLength(70)
+                            ->helperText('Si queda vacío usa Meta title'),
+
+                        Forms\Components\Textarea::make('twitter_description')
+                            ->label('Twitter description')
+                            ->rows(3)
+                            ->maxLength(160)
+                            ->helperText('Si queda vacío usa Meta description'),
+
+                        Forms\Components\FileUpload::make('twitter_image_path')
+                            ->label('Imagen Twitter')
+                            ->disk('public')
+                            ->directory('branding')
+                            ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios(['1.91:1'])
+                            ->maxSize(4096)
+                            ->helperText('Si queda vacío usa Imagen OG'),
                     ])
                     ->columns(2),
 
@@ -162,7 +201,12 @@ class MySettings extends Page
                             ->directory('backgrounds')
                             ->image()
                             ->imageEditor()
-                            ->maxSize(4096),
+                            ->maxSize(4096)
+                            ->helperText('Se usa si no elegís color'),
+
+                        Forms\Components\ColorPicker::make('bg_desktop_color')
+                            ->label('Color fondo Desktop (opcional)')
+                            ->helperText('Si hay imagen, la imagen tiene prioridad'),
 
                         Forms\Components\FileUpload::make('bg_mobile_path')
                             ->label('Fondo Mobile')
@@ -170,9 +214,24 @@ class MySettings extends Page
                             ->directory('backgrounds')
                             ->image()
                             ->imageEditor()
-                            ->maxSize(4096),
+                            ->maxSize(4096)
+                            ->helperText('Se usa si no elegís color'),
+
+                        Forms\Components\ColorPicker::make('bg_mobile_color')
+                            ->label('Color fondo Mobile (opcional)')
+                            ->helperText('Si hay imagen, la imagen tiene prioridad'),
                     ])
+                    ->columns(2),
+
+                    Forms\Components\Section::make('Visibilidad de la Página')
+                        ->schema([
+                        Forms\Components\Toggle::make('landing_available')
+                            ->label('Landing disponible')
+                            ->helperText('Si desactivás, la URL pública mostrará un aviso de no disponibilidad')
+                            ->default(true),
+                        ])
                     ->columns(2)
+                        
             ])
             ->statePath('data');
     }
@@ -181,22 +240,30 @@ class MySettings extends Page
     {
         $userId = $this->user;
         $validated = $this->form->getState();
+        $bgDesktopColor = $validated['bg_desktop_color'] ?? null;
+        $bgMobileColor = $validated['bg_mobile_color'] ?? null;
+
+        unset($validated['bg_desktop_color'], $validated['bg_mobile_color']);
+
+        if (empty($validated['bg_desktop_path']) && $bgDesktopColor) {
+            $validated['bg_desktop_path'] = $bgDesktopColor;
+        }
+
+        if (empty($validated['bg_mobile_path']) && $bgMobileColor) {
+            $validated['bg_mobile_path'] = $bgMobileColor;
+        }
 
         $setting = Setting::firstOrNew(['user_id' => $userId]);
-        
-        // Guardamos el estado previo para comparar cambios
         $before = $setting->toArray();
-        $after = $validated;
+        $after  = $validated;
 
         $setting->fill($validated);
         $setting->user_id = $userId;
         $setting->location_text = $validated['location_text'] ?? null;
 
-        // Si hay lat/lng, generar dirección legible si address_text está vacío
         if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
             $lat = $validated['latitude'];
             $lng = $validated['longitude'];
-
             if (empty($validated['address_text'])) {
                 $address = $this->getAddressFromCoordinates($lat, $lng);
                 $setting->address_text = $address ?? '';
@@ -205,16 +272,12 @@ class MySettings extends Page
 
         $setting->save();
 
-        // --- Registro en ChangeLog ---
+        // Registro ChangeLog
         $changes = [];
         foreach ($after as $key => $newValue) {
             $oldValue = $before[$key] ?? null;
-
             if ($oldValue != $newValue) {
-                $changes[$key] = [
-                    'from' => $oldValue,
-                    'to'   => $newValue,
-                ];
+                $changes[$key] = ['from' => $oldValue, 'to' => $newValue];
             }
         }
 
@@ -232,8 +295,11 @@ class MySettings extends Page
             ->title('Configuración guardada')
             ->success()
             ->send();
-    }
 
+        if (! Auth::user()->wizard_completed) {
+            $this->redirectRoute('filament.admin.pages.wizard');
+        }
+    }
 
     protected function getAddressFromCoordinates($lat, $lng): ?string
     {
@@ -254,6 +320,17 @@ class MySettings extends Page
             // Si falla Nominatim, devolvemos null
             return null;
         }
+    }
+
+    protected function isColorValue(?string $value): bool
+    {
+        if (! $value) {
+            return false;
+        }
+
+        return str_starts_with($value, '#')
+            || str_starts_with($value, 'rgb')
+            || str_starts_with($value, 'hsl');
     }
 
 }

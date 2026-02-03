@@ -3,16 +3,23 @@
 namespace App\Filament\Resources\SocialLinkResource\Pages;
 
 use App\Filament\Resources\SocialLinkResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Auth;
 
 class CreateSocialLink extends CreateRecord
 {
     protected static string $resource = SocialLinkResource::class;
 
-    protected function getRedirectUrl(): string
+    protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Por defecto ir al listado
-        return $this->getResource()::getUrl('index');
+        $data['user_id'] = Auth::id();
+        return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        if (! Auth::user()->wizard_completed) {
+            $this->redirectRoute('filament.admin.pages.wizard');
+        }
     }
 }
