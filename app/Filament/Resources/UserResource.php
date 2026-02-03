@@ -47,8 +47,9 @@ class UserResource extends Resource
                 Tables\Actions\Action::make('landing')
                     ->label('Ver landing')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn (User $record) => route('landing.user', $record->username))
-                    ->openUrlInNewTab(),
+                    ->url(fn (User $record) => $record->username ? route('landing.user', $record->username) : null)
+                    ->openUrlInNewTab()
+                    ->visible(fn (User $record) => !empty($record->username)),
 
                 Tables\Actions\Action::make('settings')
                     ->label('Editar configuración')

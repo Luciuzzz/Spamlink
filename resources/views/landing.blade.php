@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>{{ $settings->meta_title ?? $settings->company_name }}</title>
+    <title>{{ $settings?->meta_title ?? $settings?->company_name ?? 'Landing' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     {{-- Descripción y keywords --}}
@@ -14,8 +14,8 @@
     @endif
 
     {{-- Open Graph / Facebook / WhatsApp --}}
-    <meta property="og:title" content="{{ $settings->meta_title ?? $settings->company_name }}">
-    <meta property="og:description" content="{{ $settings->meta_description ?? '' }}">
+    <meta property="og:title" content="{{ $settings?->meta_title ?? $settings?->company_name ?? 'Landing' }}">
+    <meta property="og:description" content="{{ $settings?->meta_description ?? '' }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     @if(!empty($settings?->meta_image_path))
@@ -26,9 +26,11 @@
 
     {{-- Twitter Cards --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $settings->meta_title ?? $settings->company_name }}">
-    <meta name="twitter:description" content="{{ $settings->meta_description ?? '' }}">
-    @if(!empty($settings?->meta_image_path))
+    <meta name="twitter:title" content="{{ $settings?->twitter_title ?? $settings?->meta_title ?? $settings?->company_name ?? 'Landing' }}">
+    <meta name="twitter:description" content="{{ $settings?->twitter_description ?? $settings?->meta_description ?? '' }}">
+    @if(!empty($settings?->twitter_image_path))
+        <meta name="twitter:image" content="{{ asset('storage/'.$settings->twitter_image_path) }}">
+    @elseif(!empty($settings?->meta_image_path))
         <meta name="twitter:image" content="{{ asset('storage/'.$settings->meta_image_path) }}">
     @endif
 
@@ -44,6 +46,28 @@
     {{-- Turnstile --}}
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
+    @php
+        $desktopBgValue = $settings?->bg_desktop_path;
+        $desktopIsColor = $desktopBgValue
+            && (str_starts_with($desktopBgValue, '#')
+                || str_starts_with($desktopBgValue, 'rgb')
+                || str_starts_with($desktopBgValue, 'hsl'));
+        $desktopBgImage = ($desktopBgValue && ! $desktopIsColor)
+            ? asset('storage/'.$desktopBgValue)
+            : null;
+        $desktopBgColor = $desktopIsColor ? $desktopBgValue : null;
+
+        $mobileBgValue = $settings?->bg_mobile_path ?: $settings?->bg_desktop_path;
+        $mobileIsColor = $mobileBgValue
+            && (str_starts_with($mobileBgValue, '#')
+                || str_starts_with($mobileBgValue, 'rgb')
+                || str_starts_with($mobileBgValue, 'hsl'));
+        $mobileBgImage = ($mobileBgValue && ! $mobileIsColor)
+            ? asset('storage/'.$mobileBgValue)
+            : null;
+        $mobileBgColor = $mobileIsColor ? $mobileBgValue : null;
+    @endphp
+
     <style>
         html, body { transform: none !important; }
 
@@ -52,14 +76,16 @@
             position: fixed;
             inset: 0;
             z-index: -10;
-            background-image: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url('{{ $settings?->bg_desktop_path ? asset('storage/'.$settings->bg_desktop_path) : '' }}');
+            background-image: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), var(--bg-image, none);
+            background-color: var(--bg-color, transparent);
             background-size: cover;
             background-position: center;
         }
 
         @media (max-width: 768px) {
             #bg {
-                background-image: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), url('{{ $settings?->bg_mobile_path ? asset('storage/'.$settings->bg_mobile_path) : ($settings?->bg_desktop_path ? asset('storage/'.$settings->bg_desktop_path) : '') }}');
+                background-image: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), var(--bg-image-mobile, var(--bg-image, none));
+                background-color: var(--bg-color-mobile, var(--bg-color, transparent));
             }
         }
     </style>
@@ -73,7 +99,15 @@
 <body class="min-h-screen text-white">
 
 {{-- Fondo --}}
-<div id="bg"></div>
+<div
+    id="bg"
+    style="
+        --bg-image: {{ $desktopBgImage ? "url('{$desktopBgImage}')" : 'none' }};
+        --bg-color: {{ $desktopBgColor ?? 'transparent' }};
+        --bg-image-mobile: {{ $mobileBgImage ? "url('{$mobileBgImage}')" : 'none' }};
+        --bg-color-mobile: {{ $mobileBgColor ?? 'transparent' }};
+    "
+></div>
 
 <header class="sticky top-0 z-50 h-20 flex items-center justify-center bg-transparent backdrop-blur border-b border-white/10">
     @if(!empty($settings?->logo_path))
@@ -81,7 +115,7 @@
              alt="{{ $settings->company_name }}"
              class="max-h-14 max-w-[80%] object-contain">
     @else
-        <span class="text-white font-bold">{{ $settings->company_name }}</span>
+        <span class="text-white font-bold">{{ $settings?->company_name ?? 'Landing' }}</span>
     @endif
 </header>
 
@@ -233,9 +267,13 @@
                     ¿Querés el tuyo?
                 </a>
             @else
-                <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 transition">
-                    Ir al panel
+                <a href="{{ route('dashboard') }}" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    class="px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 transition">
+                        Ir al panel
                 </a>
+
             @endguest
         </div>
 

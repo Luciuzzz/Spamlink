@@ -28,9 +28,24 @@ class LandingController extends Controller
     // Landing de un usuario
     public function showUser(string $username)
     {
-        $user = User::where('username', $username)->firstOrFail();
+        $user = User::where('username', $username)->first();
 
-        $settings = $user->setting;
+        if (! $user) {
+            return view('landing-unavailable', [
+                'user' => null,
+                'settings' => null,
+            ]);
+        }
+
+        $settings = Setting::firstOrCreate(['user_id' => $user->id]);
+
+        if (! $settings->landing_available) {
+            return view('landing-unavailable', [
+                'user' => $user,
+                'settings' => $settings,
+            ]);
+        }
+
         $links = $user->socialLinks()
             ->where('is_active', true)
             ->orderBy('order')

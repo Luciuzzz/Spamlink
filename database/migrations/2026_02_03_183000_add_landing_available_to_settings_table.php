@@ -6,23 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            $table->foreignId('user_id')->unique()->after('id')->constrained()->cascadeOnDelete();
+            $table->boolean('landing_available')->default(true)->after('user_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            //
+            $table->dropColumn('landing_available');
         });
     }
 };

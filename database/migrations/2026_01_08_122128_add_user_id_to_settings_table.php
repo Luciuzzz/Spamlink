@@ -13,7 +13,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // La columna user_id YA existe, así que no la agregamos.
+        Schema::table('settings', function (Blueprint $table) {
+            // Crear la columna user_id primero
+            $table->foreignId('user_id')->nullable()->after('id');
+        });
 
         // Rellenar nulos (por si se ejecuta en otra máquina)
         DB::table('settings')->whereNull('user_id')->update(['user_id' => 1]);
