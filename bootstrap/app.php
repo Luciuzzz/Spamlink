@@ -19,7 +19,25 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->renderable(function (\Throwable $e, $request) {
+            if ($request->expectsJson() || $request->wantsJson() || $request->headers->has('X-Livewire')) {
+                return null;
+            }
+
+            $status = 500;
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                $status = $e->getStatusCode();
+            } elseif ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                $status = 404;
+            }
+
+            return response()->view('errors.simple', [
+                'status' => $status,
+                'message' => $status === 404
+                    ? 'No encontramos la página solicitada.'
+                    : 'Ocurrió un error. Por favor intentá de nuevo.',
+            ], $status);
+        });
     })->create();
 
     if (! function_exists('is_superadmin')) {
@@ -35,4 +53,3 @@ if (! function_exists('is_admin')) {
         return Auth::check() && in_array(Auth::user()->role, ['admin', 'superadmin']);
     }
 }
-
