@@ -13,16 +13,7 @@ class LandingController extends Controller
     // "/" -> login (nunca mostrar landing global)
     public function show()
     {
-        $settings = Setting::first();
-        $links = SocialLink::where('is_active', true)->orderBy('order')->get();
-        $multimedia = null; // no mostrar multimedia global
-
-        return view('landing', [
-            'user' => null,
-            'settings' => $settings,
-            'links' => $links,
-            'multimedia' => $multimedia,
-        ]);
+        return redirect()->route('login');
     }
 
     // Landing de un usuario

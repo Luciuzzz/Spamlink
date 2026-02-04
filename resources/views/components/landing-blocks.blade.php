@@ -2,6 +2,9 @@
 <section class="mt-12 space-y-10 flex flex-col items-center">
 
     @foreach($blocks as $block)
+        @if(isset($block['data']['is_active']) && ! $block['data']['is_active'])
+            @continue
+        @endif
 
         @switch($block['type'])
 

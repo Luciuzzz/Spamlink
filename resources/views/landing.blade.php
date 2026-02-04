@@ -205,34 +205,40 @@
         <x-landing-blocks :blocks="$multimedia->data['blocks'] ?? []" />
     @endif
 {{-- Formulario de contacto --}}
-    <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10 max-w-md mx-auto px-4 py-10">
-        <h2 class="text-lg font-bold mb-3">Contacto</h2>
+    @if(!empty($user))
+        <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10 max-w-md mx-auto px-4 py-10">
+            <h2 class="text-lg font-bold mb-3">Contacto</h2>
 
-        <form method="POST" action="{{ isset($user) ? route('landing.contact', $user->username) : route('landing.contact') }}">
-            @csrf
+            <form method="POST" action="{{ route('landing.contact', $user->username) }}">
+                @csrf
 
-            <input name="name" required placeholder="Tu nombre"
-                class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
+                <input name="name" required placeholder="Tu nombre"
+                    class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
 
-            <input name="email" type="email" required placeholder="Tu email"
-                class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
+                <input name="email" type="email" required placeholder="Tu email"
+                    class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
 
-            <textarea name="message" required rows="4"
-                placeholder="¿En qué puedo ayudarte?"
-                class="w-full mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl"></textarea>
+                <textarea name="message" required rows="4"
+                    placeholder="¿En qué puedo ayudarte?"
+                    class="w-full mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl"></textarea>
 
-            {{-- Turnstile --}}
-            <div class="mt-4 flex flex-col items-center">
-                <x-turnstile />
-                <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
-            </div>
+                {{-- Turnstile --}}
+                <div class="mt-4 flex flex-col items-center">
+                    <x-turnstile />
+                    <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
+                </div>
 
 
-            <button class="w-full bg-white text-black font-bold py-3 rounded-xl mt-4">
-                Enviar
-            </button>
-        </form>
-    </section>
+                <button class="w-full bg-white text-black font-bold py-3 rounded-xl mt-4">
+                    Enviar
+                </button>
+            </form>
+        </section>
+    @else
+        <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10 max-w-md mx-auto px-4 py-10 text-center text-white/70">
+            Esta landing es privada. Accedé con un usuario para contactar.
+        </section>
+    @endif
 
 </main>
 {{-- Mapa FULL --}}

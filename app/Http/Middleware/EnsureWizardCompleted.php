@@ -21,6 +21,14 @@ class EnsureWizardCompleted
             return $next($request);
         }
 
+        if (
+            $request->routeIs('logout')
+            || $request->routeIs('filament.*.auth.logout')
+            || $request->is('admin/logout')
+        ) {
+            return $next($request);
+        }
+
         if ($user->wizard_completed) {
             if ($currentRoute === 'filament.admin.pages.wizard') {
                 return redirect()->route('filament.admin.pages.dashboard');

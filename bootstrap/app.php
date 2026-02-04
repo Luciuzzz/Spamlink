@@ -24,6 +24,20 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
+            if (app()->environment('local') && config('app.debug')) {
+                return null;
+            }
+
+            if (
+                $e instanceof \Illuminate\Validation\ValidationException
+                || $e instanceof \Illuminate\Auth\AuthenticationException
+                || $e instanceof \Illuminate\Auth\Access\AuthorizationException
+                || $e instanceof \Illuminate\Http\Exceptions\HttpResponseException
+                || $e instanceof \Illuminate\Session\TokenMismatchException
+            ) {
+                return null;
+            }
+
             $status = 500;
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
                 $status = $e->getStatusCode();
