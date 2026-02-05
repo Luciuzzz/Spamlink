@@ -5,30 +5,46 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SocialLinkResource\Pages;
 use App\Models\SocialLink;
 use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Schemas\Components\View;
+use Filament\Schemas\Components\Section;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class SocialLinkResource extends Resource
 {
     protected static ?string $model = SocialLink::class;
-    protected static ?string $navigationIcon = 'heroicon-o-link';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-link';
     protected static ?string $navigationLabel = 'Redes / Links';
     protected static ?string $pluralLabel = 'Enlaces';
     protected static ?string $slug = 'social-links';
     protected static ?int $navigationSort = 3;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->schema([
+            View::make('wizard_tour_social_links')
+                ->view('filament.components.wizard-tour')
+                ->viewData([
+                    'steps' => [
+                        [
+                            'selector' => '[data-tour="social-link-section"]',
+                            'title' => 'Redes / Links',
+                            'body' => 'Agregá al menos un link activo para que aparezca en tu landing.',
+                            'required' => 'Nombre, Tipo, Destino, Icono',
+                        ],
+                    ],
+                ])
+                ->columnSpanFull(),
             Forms\Components\Hidden::make('user_id')
                 ->default(fn () => Auth::id())
                 ->required(),
 
-            Forms\Components\Section::make('Datos del enlace')
+            Section::make('Datos del enlace')
+                ->extraAttributes(['data-tour' => 'social-link-section'])
                 ->schema([
                     Forms\Components\TextInput::make('name')
                         ->label('Nombre')

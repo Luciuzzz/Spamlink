@@ -160,23 +160,26 @@
     </section>
 
     {{-- Links --}}
-<section class="mt-8 space-y-4 max-w-md mx-auto px-4 py-10">
+<section class="mt-8 mx-auto grid max-w-3xl grid-cols-1 gap-4 px-4 py-10 sm:grid-cols-2 justify-items-center">
+
     @forelse ($links as $record)
 
         <a href="{{ $record->full_url }}"
            target="_blank"
            rel="noopener"
-           class="group block w-full rounded-xl px-4 py-3
-                  bg-white/15 hover:bg-white/25
-                  border border-white/20 backdrop-blur
-                  transform transition-all duration-300
-                  hover:scale-105 hover:shadow-lg">
+           @class([
+               'group block w-full max-w-sm rounded-xl px-4 py-3
+                bg-white/15 hover:bg-white/25
+                border border-white/20 backdrop-blur
+                transform transition-all duration-300
+                hover:scale-105 hover:shadow-lg',
+               'sm:col-span-2 sm:justify-self-center' => $loop->last && $loop->odd,
+           ])>
 
             <div class="flex items-center gap-3">
 
                 {{-- ICONO --}}
                 @if (!empty($record->icon_path))
-                    {{-- Ícono personalizado --}}
                     <img
                         src="{{ asset('storage/' . $record->icon_path) }}"
                         alt="{{ $record->name }}"
@@ -184,15 +187,11 @@
                                transition-transform duration-300
                                group-hover:scale-110"
                     >
-
                 @elseif (!empty($record->icon_class))
-                    {{-- Ícono Font Awesome --}}
                     <i class="{{ $record->icon_class }}"
                        style="font-size: 1.4rem; color: {{ $record->icon_color }}"
                        class="transition-transform duration-300 group-hover:scale-110"></i>
-
                 @else
-                    {{-- Fallback --}}
                     <i class="fa-solid fa-link text-white/60"
                        style="font-size: 1.4rem"
                        class="transition-transform duration-300 group-hover:scale-110"></i>
@@ -217,11 +216,13 @@
     @empty
         <div class="text-center text-white/80 text-sm
                     bg-white/5 rounded-xl border border-dashed border-white/20
-                    max-w-md mx-auto px-4 py-10">
+                    px-4 py-10 sm:col-span-2">
             No hay enlaces configurados todavía.
         </div>
     @endforelse
+
 </section>
+
 {{-- BLOQUES MULTIMEDIA --}}
     @if(isset($multimedia))
         <x-landing-blocks :blocks="$multimedia->data['blocks'] ?? []" />

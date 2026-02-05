@@ -11,8 +11,8 @@ use App\Models\SocialLink;
 
 class Wizard extends Page
 {
-    protected static string $view = 'filament.pages.wizard';
-    protected static ?string $navigationIcon = null;
+    protected string $view = 'filament.pages.wizard';
+    protected static string|\BackedEnum|null $navigationIcon = null;
     protected static ?string $navigationLabel = null;
     protected static bool $shouldRegisterNavigation = false;
 

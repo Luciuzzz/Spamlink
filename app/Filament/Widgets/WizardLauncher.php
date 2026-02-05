@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 
 class WizardLauncher extends Widget
 {
-    protected static string $view = 'filament.widgets.wizard-launcher';
+    protected string $view = 'filament.widgets.wizard-launcher';
 
     public function launchWizard()
     {

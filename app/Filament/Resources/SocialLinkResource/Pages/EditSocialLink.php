@@ -12,8 +12,6 @@ class EditSocialLink extends EditRecord
 
     protected function afterSave(): void
     {
-        parent::afterSave();
-
         if (! Auth::user()->wizard_completed) {
             $this->redirectRoute('filament.admin.pages.wizard');
         }

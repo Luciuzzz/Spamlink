@@ -13,7 +13,14 @@ class LandingController extends Controller
     // "/" -> login (nunca mostrar landing global)
     public function show()
     {
-        $settings = Setting::first();
+        if (auth()->check()) {
+            $fallback = route('filament.admin.pages.dashboard');
+            $previous = url()->previous();
+
+            return redirect()->to($previous ?: $fallback);
+        }
+
+        $settings = Setting::first() ?? new Setting();
         $links = SocialLink::where('is_active', true)->orderBy('order')->get();
         $multimedia = null; // no mostrar multimedia global
 

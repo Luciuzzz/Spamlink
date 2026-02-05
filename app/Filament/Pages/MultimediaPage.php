@@ -2,27 +2,34 @@
 
 namespace App\Filament\Pages;
 
-use Filament\Pages\Page;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\ViewField;
 use App\Models\LandingSection;
-use Illuminate\Support\Facades\Auth;
+use Filament\Forms;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Notifications\Notification;
+use Filament\Pages\Page;
+use Filament\Schemas\Components\View;
+use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class MultimediaPage extends Page
 {
     use InteractsWithForms;
 
-    protected static ?string $navigationIcon = 'heroicon-o-photo';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-photo';
+
     protected static ?string $navigationLabel = 'Multimedia';
+
     protected static ?string $slug = 'multimedia';
+
     protected static ?string $title = 'Editor de Multimedia';
-    protected static string $view = 'filament.pages.multimedia-page';
+
+    protected string $view = 'filament.pages.multimedia-page';
+
     protected static ?int $navigationSort = 2;
 
     public array $data = [];
+
     public ?int $userId = null;
 
     public function mount(): void
@@ -60,11 +67,24 @@ class MultimediaPage extends Page
         $this->form->fill($this->data);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->statePath('data')
             ->schema([
+                View::make('wizard_tour_multimedia')
+                    ->view('filament.components.wizard-tour')
+                    ->viewData([
+                        'steps' => [
+                            [
+                                'selector' => '[data-tour="multimedia-blocks"]',
+                                'title' => 'Bloques multimedia',
+                                'body' => 'Agregá bloques de texto, imágenes o video para tu landing.',
+                                'required' => 'Al menos un bloque activo con contenido',
+                            ],
+                        ],
+                    ])
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('title')
                     ->label('Título')
                     ->required(),
@@ -77,6 +97,7 @@ class MultimediaPage extends Page
 
                 Forms\Components\Builder::make('blocks')
                     ->label('Contenido')
+                    ->extraAttributes(['data-tour' => 'multimedia-blocks'])
                     ->blocks([
                         Forms\Components\Builder\Block::make('text')
                             ->schema([
@@ -85,10 +106,16 @@ class MultimediaPage extends Page
                                     ->default(true),
                                 Forms\Components\RichEditor::make('content')
                                     ->label('Contenido')
-                                    ->required(),
-                                Forms\Components\ColorPicker::make('text_color')
-                                    ->label('Color de texto')
-                                    ->default('#ffffff'),
+                                    ->required()
+                                    ->extraInputAttributes(['style' => 'min-height: 200px; h-auto;'])
+                                    ->placeholder('Escribí tu contenido aquí...')
+                                    ->toolbarButtons([
+                                        ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link'],
+                                        ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd', 'alignJustify'],
+                                        ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
+                                        ['table', 'textColor', 'highlight', 'attachFiles'],
+                                        ['undo', 'redo'],
+                                    ]),
                             ]),
 
                         Forms\Components\Builder\Block::make('image')
@@ -127,56 +154,56 @@ class MultimediaPage extends Page
     }
 
     public function save(): void
-{
-    $state = $this->form->getState();
+    {
+        $state = $this->form->getState();
 
-    $section = LandingSection::firstOrNew([
-        'slug' => 'multimedia',
-        'user_id' => $this->userId,
-    ]);
+        $section = LandingSection::firstOrNew([
+            'slug' => 'multimedia',
+            'user_id' => $this->userId,
+        ]);
 
-    $before = $section->toArray();
-    $after = [
-        'title'       => $state['title'] ?? $section->title,
-        'description' => $state['description'] ?? $section->description,
-        'is_active'   => $state['is_active'] ?? $section->is_active,
-        'data'        => ['blocks' => $state['blocks'] ?? []],
-    ];
+        $before = $section->toArray();
+        $after = [
+            'title' => $state['title'] ?? $section->title,
+            'description' => $state['description'] ?? $section->description,
+            'is_active' => $state['is_active'] ?? $section->is_active,
+            'data' => ['blocks' => $state['blocks'] ?? []],
+        ];
 
-    $section->title = $after['title'];
-    $section->description = $after['description'];
-    $section->is_active = $after['is_active'];
-    $section->data = $after['data'];
-    $section->save();
+        $section->title = $after['title'];
+        $section->description = $after['description'];
+        $section->is_active = $after['is_active'];
+        $section->data = $after['data'];
+        $section->save();
 
-    // Registro ChangeLog
-    $changes = [];
-    foreach ($after as $key => $newValue) {
-        $oldValue = $before[$key] ?? null;
-        if ($oldValue != $newValue) {
-            $changes[$key] = ['from' => $oldValue, 'to' => $newValue];
+        // Registro ChangeLog
+        $changes = [];
+        foreach ($after as $key => $newValue) {
+            $oldValue = $before[$key] ?? null;
+            if ($oldValue != $newValue) {
+                $changes[$key] = ['from' => $oldValue, 'to' => $newValue];
+            }
+        }
+
+        if (! empty($changes)) {
+            \App\Models\ChangeLog::create([
+                'user_id' => $this->userId,
+                'model_type' => LandingSection::class,
+                'model_id' => $section->id,
+                'action' => $section->wasRecentlyCreated ? 'create' : 'update',
+                'changes' => $changes,
+            ]);
+        }
+
+        Notification::make()
+            ->title('Multimedia guardada correctamente')
+            ->success()
+            ->send();
+
+        if (! Auth::user()->wizard_completed) {
+            $this->redirectRoute('filament.admin.pages.wizard');
         }
     }
-
-    if (!empty($changes)) {
-        \App\Models\ChangeLog::create([
-            'user_id'    => $this->userId,
-            'model_type' => LandingSection::class,
-            'model_id'   => $section->id,
-            'action'     => $section->wasRecentlyCreated ? 'create' : 'update',
-            'changes'    => $changes,
-        ]);
-    }
-
-    Notification::make()
-        ->title('Multimedia guardada correctamente')
-        ->success()
-        ->send();
-
-    if (! Auth::user()->wizard_completed) {
-        $this->redirectRoute('filament.admin.pages.wizard');
-    }
-}
 
     public static function canAccess(): bool
     {

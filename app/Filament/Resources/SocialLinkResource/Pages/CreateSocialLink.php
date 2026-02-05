@@ -16,10 +16,8 @@ class CreateSocialLink extends CreateRecord
         return $data;
     }
 
-    protected function afterCreate(): void
+    protected function getRedirectUrl(): string
     {
-        if (! Auth::user()->wizard_completed) {
-            $this->redirectRoute('filament.admin.pages.wizard');
-        }
+        return $this->getResource()::getUrl('index');
     }
 }

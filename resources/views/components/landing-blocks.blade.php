@@ -10,12 +10,9 @@
                 @php
                     $data = $block['data'] ?? [];
                     $content = $data['content'] ?? '';
-                    $color = $data['text_color'] ?? '#ffffff';
-                    $bg = $data['background_color'] ?? 'transparent';
                 @endphp
 
-                <div class="w-full max-w-[90vw] mx-auto p-4 rounded-xl"
-                    style="color: {{ $color }}; background-color: {{ $bg }};">
+                <div class="w-full max-w-[90vw] mx-auto p-4 rounded-xl">
                     {!! $content !!}
                 </div>
             @break

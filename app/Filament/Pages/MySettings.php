@@ -3,21 +3,26 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
-use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Forms;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
+use Filament\Actions\Action;
 use App\Forms\Components\MapPicker;
 use App\Forms\Components\RangeSlider;
 use App\Models\ChangeLog;
 use GuzzleHttp\Client;
 use Livewire\Attributes\Url;
+use Filament\Schemas\Components\View;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 
 class MySettings extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
-    protected static string $view = 'filament.pages.my-settings';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected string $view = 'filament.pages.my-settings';
     protected static ?string $navigationLabel = 'Mi Configuración';
     protected static ?string $title = 'Configuración';
     protected static ?string $slug = 'my-settings';
@@ -60,11 +65,49 @@ class MySettings extends Page
         $this->form->fill($data);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\Section::make('Información')
+                View::make('wizard_tour_settings')
+                    ->view('filament.components.wizard-tour')
+                    ->viewData([
+                        'steps' => [
+                            [
+                                'selector' => '[data-tour="settings-info"]',
+                                'title' => 'Información básica',
+                                'body' => 'Completá los datos que se verán en tu landing.',
+                                'required' => 'Nombre de la empresa, Eslogan, Descripción',
+                            ],
+                            [
+                                'selector' => '[data-tour="settings-branding"]',
+                                'title' => 'Identidad visual',
+                                'body' => 'Cargá logo y favicon para tu marca.',
+                                'required' => 'Ninguno (todo opcional)',
+                            ],
+                            [
+                                'selector' => '[data-tour="settings-seo"]',
+                                'title' => 'SEO y Metadatos',
+                                'body' => 'Configurá cómo se ve tu landing en Google y redes.',
+                                'required' => 'Ninguno (todo opcional)',
+                            ],
+                            [
+                                'selector' => '[data-tour="settings-backgrounds"]',
+                                'title' => 'Fondos',
+                                'body' => 'Elegí imagen o color para desktop y mobile.',
+                                'required' => 'Ninguno (todo opcional)',
+                            ],
+                            [
+                                'selector' => '[data-tour="settings-visibility"]',
+                                'title' => 'Visibilidad',
+                                'body' => 'Definí si la landing pública está disponible.',
+                                'required' => 'Ninguno',
+                            ],
+                        ],
+                    ])
+                    ->columnSpanFull(),
+                Section::make('Información')
+                    ->extraAttributes(['data-tour' => 'settings-info'])
                     ->schema([
                         Forms\Components\TextInput::make('company_name')
                             ->label('Nombre de la empresa')
@@ -104,8 +147,8 @@ class MySettings extends Page
                             ->extraAttributes(['wire:ignore'])
                             ->view('filament.components.location-search'),
                                  
-                        Forms\Components\Actions::make([
-                            Forms\Components\Actions\Action::make('clearLocationText')
+                        Actions::make([
+                            Action::make('clearLocationText')
                                 ->label('Borrar ubicación personalizada')
                                 ->color('danger')
                                 ->icon('heroicon-o-trash')
@@ -123,7 +166,8 @@ class MySettings extends Page
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Identidad visual')
+                Section::make('Identidad visual')
+                    ->extraAttributes(['data-tour' => 'settings-branding'])
                     ->schema([
                         Forms\Components\FileUpload::make('logo_path')
                             ->label('Logo')
@@ -131,7 +175,7 @@ class MySettings extends Page
                             ->directory('branding')
                             ->image()
                             ->imageEditor()
-                            ->imageEditorAspectRatios(['1:1'])
+                            ->imageEditorAspectRatioOptions(['1:1'])
                             ->maxSize(2048)
                             ->helperText('PNG/JPG cuadrado recomendado'),
 
@@ -145,7 +189,8 @@ class MySettings extends Page
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('SEO / Metadatos')
+                Section::make('SEO / Metadatos')
+                    ->extraAttributes(['data-tour' => 'settings-seo'])
                     ->schema([
                         Forms\Components\TextInput::make('meta_title')
                             ->label('Meta title')
@@ -168,7 +213,7 @@ class MySettings extends Page
                             ->directory('branding')
                             ->image()
                             ->imageEditor()
-                            ->imageEditorAspectRatios(['1.91:1'])
+                            ->imageEditorAspectRatioOptions(['1.91:1'])
                             ->maxSize(4096)
                             ->helperText('1200x630 recomendado'),
 
@@ -189,13 +234,14 @@ class MySettings extends Page
                             ->directory('branding')
                             ->image()
                             ->imageEditor()
-                            ->imageEditorAspectRatios(['1.91:1'])
+                            ->imageEditorAspectRatioOptions(['1.91:1'])
                             ->maxSize(4096)
                             ->helperText('Si queda vacío usa Imagen OG'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Fondos')
+                Section::make('Fondos')
+                    ->extraAttributes(['data-tour' => 'settings-backgrounds'])
                     ->schema([
                         Forms\Components\FileUpload::make('bg_desktop_path')
                             ->label('Fondo Desktop')
@@ -235,11 +281,12 @@ class MySettings extends Page
                             ->step(0.05)
                             ->default(0.55)
                             ->helperText('De 0.1 a 1.0')
-                            ->disabled(fn (Forms\Get $get) => ! $get('bg_overlay_enabled')),
+                            ->disabled(fn (Get $get) => ! $get('bg_overlay_enabled')),
                     ])
                     ->columns(2),
 
-                    Forms\Components\Section::make('Visibilidad de la Página')
+                    Section::make('Visibilidad de la Página')
+                        ->extraAttributes(['data-tour' => 'settings-visibility'])
                         ->schema([
                         Forms\Components\Toggle::make('landing_available')
                             ->label('Landing disponible')

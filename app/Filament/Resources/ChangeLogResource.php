@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ChangeLogResource\Pages;
 use App\Models\ChangeLog;
 use Filament\Forms;
+use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
@@ -16,7 +17,7 @@ use Illuminate\View\View;
 class ChangeLogResource extends Resource
 {
     protected static ?string $model = ChangeLog::class;
-    protected static ?string $navigationIcon = 'heroicon-o-clock';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clock';
     protected static ?string $navigationLabel = 'Historial de Cambios';
     protected static ?string $pluralLabel = 'Cambios';
     protected static ?int $navigationSort = 11;
@@ -96,9 +97,9 @@ class ChangeLogResource extends Resource
             ->bulkActions([]);
     }
 
-    public static function form(Forms\Form $form): Forms\Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([]);
+        return $schema->schema([]);
     }
 
     public static function getPages(): array
