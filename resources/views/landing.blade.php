@@ -66,6 +66,20 @@
             ? asset('storage/'.$mobileBgValue)
             : null;
         $mobileBgColor = $mobileIsColor ? $mobileBgValue : null;
+
+        $defaultBgColor = '#0b0b0b';
+        if (! $desktopBgImage && ! $desktopBgColor) {
+            $desktopBgColor = $defaultBgColor;
+        }
+        if (! $mobileBgImage && ! $mobileBgColor) {
+            $mobileBgColor = $desktopBgColor ?? $defaultBgColor;
+        }
+
+        $overlayEnabled = $settings?->bg_overlay_enabled ?? true;
+        $overlayAlpha = $overlayEnabled
+            ? max(0.1, min(1, (float) ($settings?->bg_overlay_opacity ?? 0.55)))
+            : 0;
+
     @endphp
 
     <style>
@@ -76,7 +90,7 @@
             position: fixed;
             inset: 0;
             z-index: -10;
-            background-image: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), var(--bg-image, none);
+            background-image: linear-gradient(rgba(0,0,0,var(--bg-overlay-alpha, .55)), rgba(0,0,0,var(--bg-overlay-alpha, .55))), var(--bg-image, none);
             background-color: var(--bg-color, transparent);
             background-size: cover;
             background-position: center;
@@ -84,7 +98,7 @@
 
         @media (max-width: 768px) {
             #bg {
-                background-image: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)), var(--bg-image-mobile, var(--bg-image, none));
+                background-image: linear-gradient(rgba(0,0,0,var(--bg-overlay-alpha, .55)), rgba(0,0,0,var(--bg-overlay-alpha, .55))), var(--bg-image-mobile, var(--bg-image, none));
                 background-color: var(--bg-color-mobile, var(--bg-color, transparent));
             }
         }
@@ -104,6 +118,7 @@
     style="
         --bg-image: {{ $desktopBgImage ? "url('{$desktopBgImage}')" : 'none' }};
         --bg-color: {{ $desktopBgColor ?? 'transparent' }};
+        --bg-overlay-alpha: {{ $overlayAlpha }};
         --bg-image-mobile: {{ $mobileBgImage ? "url('{$mobileBgImage}')" : 'none' }};
         --bg-color-mobile: {{ $mobileBgColor ?? 'transparent' }};
     "
@@ -131,10 +146,17 @@
             <p class="mt-3 text-sm text-white/80">{{ $settings->description }}</p>
         @endif
 
+        @php
+            $hasLocationText = !empty($settings?->location_text);
+            $hasCoords = !empty($settings?->latitude) && !empty($settings?->longitude);
+        @endphp
+
         {{-- DIRECCIÓN --}}
-        <p id="address-display" class="mt-4 text-sm text-white/80">
-            Dirección: {{ !empty($settings->location_text) ? $settings->location_text : 'Cargando dirección…' }}
-        </p>
+        @if ($hasLocationText || $hasCoords)
+            <p id="address-display" class="mt-4 text-sm text-white/80">
+                Dirección: {{ $hasLocationText ? $settings->location_text : 'Cargando dirección…' }}
+            </p>
+        @endif
     </section>
 
     {{-- Links --}}
@@ -236,16 +258,18 @@
 
 </main>
 {{-- Mapa FULL --}}
-<section class="mt-8">
-    <h2 class="text-lg font-bold mb-3 text-center">Ubicación</h2>
+@if ($hasCoords)
+    <section class="mt-8">
+        <h2 class="text-lg font-bold mb-3 text-center">Ubicación</h2>
 
-    <div class="w-screen flex justify-center overflow-x-hidden">
-        <div
-            id="mapPanel"
-            class="h-[50vh] w-[90vw] border border-white/20 rounded-xl z-0">
+        <div class="w-screen flex justify-center overflow-x-hidden">
+            <div
+                id="mapPanel"
+                class="h-[50vh] w-[90vw] border border-white/20 rounded-xl z-0">
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+@endif
 
 {{-- Footer --}}
 <footer id="landingFooter" class="relative w-full mt-12 bg-black/40 backdrop-blur border-t border-white/10 text-white text-sm">
@@ -326,21 +350,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const LNG = @json($settings->longitude ?? null);
 
     // Dirección: location_text o reverse geocoding
-    if (LOCATION_TEXT && LOCATION_TEXT.trim() !== '') {
-        addressEl.textContent = "Dirección: " + LOCATION_TEXT;
-    } else if (LAT && LNG) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${LAT}&lon=${LNG}&zoom=18`, {
-            headers: { 'User-Agent': 'MiApp/1.0' }
-        })
-        .then(r => r.json())
-        .then(d => {
-            addressEl.textContent = d.display_name ? "Dirección: " + d.display_name : "Dirección: No disponible";
-        })
-        .catch(() => {
-            addressEl.textContent = "Dirección: No disponible";
-        });
-    } else {
-        addressEl.textContent = "Dirección: No disponible";
+    if (addressEl) {
+        if (LOCATION_TEXT && LOCATION_TEXT.trim() !== '') {
+            addressEl.textContent = "Dirección: " + LOCATION_TEXT;
+        } else if (LAT && LNG) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${LAT}&lon=${LNG}&zoom=18`, {
+                headers: { 'User-Agent': 'MiApp/1.0' }
+            })
+            .then(r => r.json())
+            .then(d => {
+                addressEl.textContent = d.display_name
+                    ? "Dirección: " + d.display_name
+                    : "Dirección: No disponible";
+            })
+            .catch(() => {
+                addressEl.textContent = "Dirección: No disponible";
+            });
+        }
     }
 
     // Mini mapa

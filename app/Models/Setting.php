@@ -15,6 +15,8 @@ class Setting extends Model
         'description',
         'bg_desktop_path',
         'bg_mobile_path',
+        'bg_overlay_enabled',
+        'bg_overlay_opacity',
         'whatsapp_number',
         'location_text',
         'latitude',
@@ -42,6 +44,8 @@ class Setting extends Model
         'latitude' => 'float',
         'longitude' => 'float',
         'landing_available' => 'boolean',
+        'bg_overlay_enabled' => 'boolean',
+        'bg_overlay_opacity' => 'float',
     ];
 
     public function user()

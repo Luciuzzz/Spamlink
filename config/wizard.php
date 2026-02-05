@@ -10,8 +10,9 @@ return [
                 $settings = \App\Models\Setting::where('user_id', $user->id)->first();
 
                 return $settings
-                    && ($settings->company_name || $settings->description || $settings->slogan)
-                    && ! empty($settings->logo_path);
+                    && ! empty($settings->company_name)
+                    && ! empty($settings->slogan)
+                    && ! empty($settings->description);
             },
             'routes' => [
                 'filament.admin.pages.wizard',

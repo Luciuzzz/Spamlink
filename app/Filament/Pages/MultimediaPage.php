@@ -80,6 +80,9 @@ class MultimediaPage extends Page
                     ->blocks([
                         Forms\Components\Builder\Block::make('text')
                             ->schema([
+                                Forms\Components\Toggle::make('is_active')
+                                    ->label('¿Activo?')
+                                    ->default(true),
                                 Forms\Components\RichEditor::make('content')
                                     ->label('Contenido')
                                     ->required(),
@@ -90,6 +93,9 @@ class MultimediaPage extends Page
 
                         Forms\Components\Builder\Block::make('image')
                             ->schema([
+                                Forms\Components\Toggle::make('is_active')
+                                    ->label('¿Activo?')
+                                    ->default(true),
                                 Forms\Components\FileUpload::make('images')
                                     ->label('Imágenes')
                                     ->image()
@@ -99,6 +105,9 @@ class MultimediaPage extends Page
 
                         Forms\Components\Builder\Block::make('video')
                             ->schema([
+                                Forms\Components\Toggle::make('is_active')
+                                    ->label('¿Activo?')
+                                    ->default(true),
                                 Forms\Components\TextInput::make('embed_url')
                                     ->label('URL del video')
                                     ->url(),

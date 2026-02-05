@@ -93,7 +93,7 @@ class Wizard extends Page
         $userId = Auth::id();
 
         return match ($this->step) {
-            0 => $this->checkBasicSettings($userId) && $this->checkBranding($userId),
+            0 => $this->checkBasicSettings($userId),
             1 => $this->checkSocialLinks($userId),
             2 => $this->checkSections($userId),
             default => false,
@@ -104,7 +104,7 @@ class Wizard extends Page
     {
         $userId = Auth::id();
 
-        if (! $this->checkBasicSettings($userId) || ! $this->checkBranding($userId)) {
+        if (! $this->checkBasicSettings($userId)) {
             return 0;
         }
 
@@ -129,14 +129,13 @@ class Wizard extends Page
 
         return $settings
             && ! empty($settings->company_name)
-            && (! empty($settings->description) || ! empty($settings->slogan));
+            && ! empty($settings->slogan)
+            && ! empty($settings->description);
     }
 
     protected function checkBranding(int $userId): bool
     {
-        return Setting::where('user_id', $userId)
-            ->whereNotNull('logo_path')
-            ->exists();
+        return true;
     }
 
     protected function checkSections(int $userId): bool

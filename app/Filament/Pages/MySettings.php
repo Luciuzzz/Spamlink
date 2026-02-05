@@ -9,6 +9,7 @@ use Filament\Forms;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
 use App\Forms\Components\MapPicker;
+use App\Forms\Components\RangeSlider;
 use App\Models\ChangeLog;
 use GuzzleHttp\Client;
 use Livewire\Attributes\Url;
@@ -67,17 +68,19 @@ class MySettings extends Page
                     ->schema([
                         Forms\Components\TextInput::make('company_name')
                             ->label('Nombre de la empresa')
-                            // ->required()
+                            ->required()
                             ->maxLength(255)
                             ->helperText('Nombre visible en la landing y metadatos'),
 
                         Forms\Components\TextInput::make('slogan')
                             ->label('Eslogan')
+                            ->required()
                             ->maxLength(255)
                             ->helperText('Frase corta debajo del nombre'),
 
                         Forms\Components\Textarea::make('description')
                             ->label('Descripción')
+                            ->required()
                             ->rows(4)
                             ->maxLength(2000)
                             ->helperText('Texto principal de la landing'),
@@ -94,7 +97,6 @@ class MySettings extends Page
                         MapPicker::make('latitude')
                             ->longitudeField('longitude')
                             ->label('Mapa')
-                            ->required()
                             ->helperText('Selecciona una ubicación para mostrar dirección'),
                         // Campo del buscador
                         Forms\Components\Field::make('search_location')
@@ -220,6 +222,20 @@ class MySettings extends Page
                         Forms\Components\ColorPicker::make('bg_mobile_color')
                             ->label('Color fondo Mobile (opcional)')
                             ->helperText('Si hay imagen, la imagen tiene prioridad'),
+
+                        Forms\Components\Toggle::make('bg_overlay_enabled')
+                            ->label('Capa de contraste')
+                            ->helperText('Oscurece el fondo para mejorar legibilidad')
+                            ->default(true),
+
+                        RangeSlider::make('bg_overlay_opacity')
+                            ->label('Intensidad de contraste')
+                            ->min(0.1)
+                            ->max(1)
+                            ->step(0.05)
+                            ->default(0.55)
+                            ->helperText('De 0.1 a 1.0')
+                            ->disabled(fn (Forms\Get $get) => ! $get('bg_overlay_enabled')),
                     ])
                     ->columns(2),
 
@@ -260,6 +276,8 @@ class MySettings extends Page
         $setting->fill($validated);
         $setting->user_id = $userId;
         $setting->location_text = $validated['location_text'] ?? null;
+        $setting->bg_overlay_enabled = $validated['bg_overlay_enabled'] ?? true;
+        $setting->bg_overlay_opacity = $validated['bg_overlay_opacity'] ?? 0.55;
 
         if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
             $lat = $validated['latitude'];
