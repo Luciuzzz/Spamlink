@@ -11,6 +11,7 @@ class Setting extends Model
 
     protected $fillable = [
         'company_name',
+        'show_company_name',
         'slogan',
         'description',
         'bg_desktop_path',
@@ -46,6 +47,7 @@ class Setting extends Model
         'landing_available' => 'boolean',
         'bg_overlay_enabled' => 'boolean',
         'bg_overlay_opacity' => 'float',
+        'show_company_name' => 'boolean',
     ];
 
     public function user()

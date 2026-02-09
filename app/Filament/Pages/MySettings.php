@@ -115,6 +115,8 @@ class MySettings extends Page
                                 ->label('Borrar ubicación personalizada')
                                 ->color('danger')
                                 ->icon('heroicon-o-trash')
+                                ->outlined()
+                                ->size('sm')
                                 ->action(function () {
                                     $this->data['location_text'] = null;
 
@@ -248,12 +250,17 @@ class MySettings extends Page
                     ])
                     ->columns(2),
 
-                    Section::make('Visibilidad de la Página')
-                        ->extraAttributes(['data-tour' => 'settings-visibility'])
-                        ->schema([
+                Section::make('Visibilidad de la Página')
+                    ->extraAttributes(['data-tour' => 'settings-visibility'])
+                    ->schema([
                         Forms\Components\Toggle::make('landing_available')
                             ->label('Landing disponible')
                             ->helperText('Si desactivás, la URL pública mostrará un aviso de no disponibilidad')
+                            ->default(true),
+                            
+                        Forms\Components\Toggle::make('show_company_name')
+                            ->label('Mostrar nombre de la empresa')
+                            ->helperText('Si lo desactivás, el nombre se oculta en la landing')
                             ->default(true),
                         ])
                     ->columns(2)
@@ -288,6 +295,7 @@ class MySettings extends Page
         $setting->location_text = $validated['location_text'] ?? null;
         $setting->bg_overlay_enabled = $validated['bg_overlay_enabled'] ?? true;
         $setting->bg_overlay_opacity = $validated['bg_overlay_opacity'] ?? 0.55;
+        $setting->show_company_name = $validated['show_company_name'] ?? true;
 
         if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
             $lat = $validated['latitude'];

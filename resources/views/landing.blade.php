@@ -85,6 +85,36 @@
     <style>
         html, body { transform: none !important; }
 
+        body {
+            color: var(--landing-text, #ffffff);
+        }
+
+        .auto-contrast-light {
+            color: #111111;
+        }
+
+        .auto-contrast-light .text-white { color: #111111 !important; }
+        .auto-contrast-light .text-white\/90 { color: rgba(17, 17, 17, 0.9) !important; }
+        .auto-contrast-light .text-white\/80 { color: rgba(17, 17, 17, 0.8) !important; }
+        .auto-contrast-light .text-white\/60 { color: rgba(17, 17, 17, 0.6) !important; }
+        .auto-contrast-light .text-white\/40 { color: rgba(17, 17, 17, 0.4) !important; }
+        .auto-contrast-light a { color: #111111 !important; }
+
+        .auto-contrast-light .multimedia-blocks .text-white { color: #ffffff !important; }
+        .auto-contrast-light .multimedia-blocks .text-white\/90 { color: rgba(255, 255, 255, 0.9) !important; }
+        .auto-contrast-light .multimedia-blocks .text-white\/80 { color: rgba(255, 255, 255, 0.8) !important; }
+        .auto-contrast-light .multimedia-blocks a { color: #ffffff !important; }
+
+        .auto-contrast-light .links-section a {
+            background: rgba(0, 0, 0, 0.06) !important;
+            border-color: rgba(0, 0, 0, 0.18) !important;
+        }
+
+        .auto-contrast-light .links-section a:hover {
+            background: rgba(0, 0, 0, 0.12) !important;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+        }
+
         /* Fondo responsive */
         #bg {
             position: fixed;
@@ -122,21 +152,32 @@
         --bg-image-mobile: {{ $mobileBgImage ? "url('{$mobileBgImage}')" : 'none' }};
         --bg-color-mobile: {{ $mobileBgColor ?? 'transparent' }};
     "
+    data-bg-color="{{ $desktopBgColor ?? 'transparent' }}"
+    data-bg-color-mobile="{{ $mobileBgColor ?? ($desktopBgColor ?? 'transparent') }}"
+    data-has-image="{{ $desktopBgImage ? '1' : '0' }}"
+    data-has-image-mobile="{{ $mobileBgImage ? '1' : ($desktopBgImage ? '1' : '0') }}"
+    data-overlay-alpha="{{ $overlayAlpha }}"
 ></div>
+
+@php
+    $showCompanyName = $settings?->show_company_name ?? true;
+@endphp
 
 <header class="sticky top-0 z-50 h-20 flex items-center justify-center bg-transparent backdrop-blur border-b border-white/10">
     @if(!empty($settings?->logo_path))
         <img src="{{ asset('storage/'.$settings->logo_path) }}"
              alt="{{ $settings->company_name }}"
              class="max-h-14 max-w-[80%] object-contain">
-    @else
+    @elseif($showCompanyName)
         <span class="text-white font-bold">{{ $settings?->company_name ?? 'Landing' }}</span>
     @endif
 </header>
 
 <main >{{-- class="max-w-md mx-auto px-4 py-10" --}}
     <section class="text-center">
-        <h1 class="text-3xl font-bold">{{ $settings?->company_name ?? 'Empresa' }}</h1>
+        @if($showCompanyName)
+            <h1 class="text-3xl font-bold">{{ $settings?->company_name ?? 'Empresa' }}</h1>
+        @endif
 
         @if(!empty($settings?->slogan))
             <p class="mt-2 text-white/90">{{ $settings->slogan }}</p>
@@ -160,7 +201,7 @@
     </section>
 
     {{-- Links --}}
-<section class="mt-8 mx-auto grid max-w-3xl grid-cols-1 gap-4 px-4 py-10 sm:grid-cols-2 justify-items-center">
+<section class="links-section mt-8 mx-auto grid max-w-3xl grid-cols-1 gap-4 px-4 py-10 sm:grid-cols-2 justify-items-center">
 
     @forelse ($links as $record)
 
@@ -284,7 +325,9 @@
 
         {{-- IZQUIERDA --}}
         <div class="flex-1 text-left text-white/70">
-            &copy; {{ date('Y') }} {{ $settings->company_name ?? 'Empresa' }}. Todos los derechos reservados.
+            @if($showCompanyName)
+                &copy; {{ date('Y') }} {{ $settings->company_name ?? 'Empresa' }}. Todos los derechos reservados.
+            @endif
         </div>
 
         {{-- CENTRO --}}
@@ -356,6 +399,55 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const bg = document.getElementById('bg');
+    if (bg) {
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        const hasImage = (isMobile ? bg.dataset.hasImageMobile : bg.dataset.hasImage) === '1';
+        const bgColor = (isMobile ? bg.dataset.bgColorMobile : bg.dataset.bgColor) || 'transparent';
+        const overlayAlpha = Math.min(1, Math.max(0, parseFloat(bg.dataset.overlayAlpha || '0')));
+
+        const toRgb = (value) => {
+            if (!value) return null;
+            const v = value.trim().toLowerCase();
+            if (v === 'transparent') return null;
+
+            if (v.startsWith('#')) {
+                const hex = v.replace('#', '');
+                const full = hex.length === 3
+                    ? hex.split('').map(c => c + c).join('')
+                    : hex;
+                if (full.length !== 6) return null;
+                const num = parseInt(full, 16);
+                return {
+                    r: (num >> 16) & 255,
+                    g: (num >> 8) & 255,
+                    b: num & 255,
+                };
+            }
+
+            const rgbMatch = v.match(/rgba?\(([^)]+)\)/);
+            if (rgbMatch) {
+                const parts = rgbMatch[1].split(',').map(p => parseFloat(p.trim()));
+                return { r: parts[0], g: parts[1], b: parts[2] };
+            }
+
+            return null;
+        };
+
+        const rgb = toRgb(bgColor);
+        if (!hasImage && rgb) {
+            const effective = {
+                r: rgb.r * (1 - overlayAlpha),
+                g: rgb.g * (1 - overlayAlpha),
+                b: rgb.b * (1 - overlayAlpha),
+            };
+            const luminance = (0.2126 * effective.r + 0.7152 * effective.g + 0.0722 * effective.b) / 255;
+            if (luminance > 0.72) {
+                document.body.classList.add('auto-contrast-light');
+            }
+        }
+    }
+
     const addressEl = document.getElementById('address-display');
     const LOCATION_TEXT = @json($settings->location_text ?? '');
     const LAT = @json($settings->latitude ?? null);

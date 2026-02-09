@@ -1,7 +1,7 @@
 <div
     wire:ignore
     x-data="locationPicker(@entangle('data.latitude'), @entangle('data.longitude'), @entangle('data.location_text'))"
-    class="relative w-full max-w-md"
+    class="relative w-full"
 >
     {{-- Hidden para enviar cualquier texto al backend --}}
     <input type="hidden" x-ref="hiddenField" wire:model="data.location_text">
@@ -11,27 +11,28 @@
         type="text"
         x-model="term"
         placeholder="Buscar dirección…"
-        class="w-full rounded-lg border px-3 py-2 mb-2
-               bg-white text-gray-700 placeholder-gray-400
-               focus:border-indigo-500 focus:ring-indigo-500 z-20"
+        class="w-full rounded-xl border border-gray-200 px-3 py-2.5 mb-2
+               bg-white text-gray-800 placeholder-gray-400 shadow-sm
+               focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20
+               focus:outline-none z-20"
         @input.debounce.400ms="search"
     />
 
     {{-- Lista de resultados --}}
     <ul
         x-show="results.length"
-        class="absolute z-10 mt-1 w-full rounded-lg border"
-        style="background-color: white !important; color: black !important;"
+        class="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white
+               shadow-lg max-h-60 overflow-auto"
     >
         <template x-for="item in results" :key="item.place_id">
             <li
-                class="cursor-pointer px-3 py-2 hover:bg-gray-200"
+                class="cursor-pointer px-3 py-2.5 text-sm text-gray-800 hover:bg-gray-100"
                 @click="select(item)"
                 x-text="item.display_name"
-                style="color: black !important;"
             ></li>
         </template>
     </ul>
+ </div>
 
 
 @once

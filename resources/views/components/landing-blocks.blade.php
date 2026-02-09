@@ -83,19 +83,20 @@
         </div>
     @endif
 
-    @foreach($blocks as $block)
-        @php
-            if (! is_array($block)) {
-                continue;
-            }
+    <div class="multimedia-blocks w-full flex flex-col items-center space-y-10">
+        @foreach($blocks as $block)
+            @php
+                if (! is_array($block)) {
+                    continue;
+                }
 
-            $blockData = $block['data'] ?? [];
-            if (($blockData['is_active'] ?? true) === false) {
-                continue;
-            }
-        @endphp
+                $blockData = $block['data'] ?? [];
+                if (($blockData['is_active'] ?? true) === false) {
+                    continue;
+                }
+            @endphp
 
-        @switch($block['type'])
+            @switch($block['type'])
 
             {{-- BLOQUE DE TEXTO --}}
             @case('text')
@@ -306,6 +307,21 @@
                         .dot.active {
                             background: white;
                         }
+                        .auto-contrast-light .multimedia-blocks .prev,
+                        .auto-contrast-light .multimedia-blocks .next {
+                            background: rgba(0, 0, 0, 0.12) !important;
+                            color: #111111 !important;
+                        }
+                        .auto-contrast-light .multimedia-blocks .prev:hover,
+                        .auto-contrast-light .multimedia-blocks .next:hover {
+                            background: rgba(0, 0, 0, 0.2) !important;
+                        }
+                        .auto-contrast-light .multimedia-blocks .dot {
+                            background: rgba(0, 0, 0, 0.3) !important;
+                        }
+                        .auto-contrast-light .multimedia-blocks .dot.active {
+                            background: #111111 !important;
+                        }
                     </style>
                 @endif
             @break
@@ -350,9 +366,10 @@
                 @endif
             @break
 
-        @endswitch
+            @endswitch
 
-    @endforeach
+        @endforeach
+    </div>
 
 </section>
 @endif

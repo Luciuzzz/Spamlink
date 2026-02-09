@@ -117,8 +117,39 @@
                     @else
                         <div style="background:#f3f4f6;color:#374151;border-radius:.75rem;padding:.75rem;">
                             <strong>Valor cambiado:</strong>
-                            <div><strong>From:</strong> {{ is_scalar($from) ? $from : json_encode($from, JSON_UNESCAPED_UNICODE) }}</div>
-                            <div><strong>To:</strong> {{ is_scalar($to) ? $to : json_encode($to, JSON_UNESCAPED_UNICODE) }}</div>
+                            @php
+                                $formatValue = function ($value) {
+                                    if ($value === null) {
+                                        return 'Vacío';
+                                    }
+
+                                    if (is_string($value)) {
+                                        $trim = trim($value);
+                                        if ($trim === '' || strtolower($trim) === 'null') {
+                                            return 'Vacío';
+                                        }
+
+                                        return $value;
+                                    }
+
+                                    if (is_bool($value)) {
+                                        return $value ? 'Sí' : 'No';
+                                    }
+
+                                    if (is_array($value)) {
+                                        return empty($value)
+                                            ? 'Vacío'
+                                            : json_encode($value, JSON_UNESCAPED_UNICODE);
+                                    }
+
+                                    return $value;
+                                };
+
+                                $fromValue = $formatValue($from);
+                                $toValue = $formatValue($to);
+                            @endphp
+                            <div><strong>Antes:</strong> {{ $fromValue }}</div>
+                            <div><strong>Después:</strong> {{ $toValue }}</div>
                         </div>
                     @endif
                 @endforeach
