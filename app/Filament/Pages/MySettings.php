@@ -13,7 +13,7 @@ use App\Forms\Components\RangeSlider;
 use App\Models\ChangeLog;
 use GuzzleHttp\Client;
 use Livewire\Attributes\Url;
-use Filament\Schemas\Components\View;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Utilities\Get;
@@ -69,43 +69,6 @@ class MySettings extends Page
     {
         return $schema
             ->schema([
-                View::make('wizard_tour_settings')
-                    ->view('filament.components.wizard-tour')
-                    ->viewData([
-                        'steps' => [
-                            [
-                                'selector' => '[data-tour="settings-info"]',
-                                'title' => 'Información básica',
-                                'body' => 'Completá los datos que se verán en tu landing.',
-                                'required' => 'Nombre de la empresa, Eslogan, Descripción',
-                            ],
-                            [
-                                'selector' => '[data-tour="settings-branding"]',
-                                'title' => 'Identidad visual',
-                                'body' => 'Cargá logo y favicon para tu marca.',
-                                'required' => 'Ninguno (todo opcional)',
-                            ],
-                            [
-                                'selector' => '[data-tour="settings-seo"]',
-                                'title' => 'SEO y Metadatos',
-                                'body' => 'Configurá cómo se ve tu landing en Google y redes.',
-                                'required' => 'Ninguno (todo opcional)',
-                            ],
-                            [
-                                'selector' => '[data-tour="settings-backgrounds"]',
-                                'title' => 'Fondos',
-                                'body' => 'Elegí imagen o color para desktop y mobile.',
-                                'required' => 'Ninguno (todo opcional)',
-                            ],
-                            [
-                                'selector' => '[data-tour="settings-visibility"]',
-                                'title' => 'Visibilidad',
-                                'body' => 'Definí si la landing pública está disponible.',
-                                'required' => 'Ninguno',
-                            ],
-                        ],
-                    ])
-                    ->columnSpanFull(),
                 Section::make('Información')
                     ->extraAttributes(['data-tour' => 'settings-info'])
                     ->schema([
@@ -387,6 +350,45 @@ class MySettings extends Page
         }
     }
 
+    protected function getViewData(): array
+    {
+        return [
+            'wizardSteps' => [
+                [
+                    'selector' => '[data-tour="settings-info"]',
+                    'title' => 'Información básica',
+                    'body' => 'Completá los datos que se verán en tu landing.',
+                    'required' => 'Nombre de la empresa, Eslogan, Descripción',
+                ],
+                [
+                    'selector' => '[data-tour="settings-branding"]',
+                    'title' => 'Identidad visual',
+                    'body' => 'Cargá logo y favicon para tu marca.',
+                    'required' => 'Ninguno (todo opcional)',
+                ],
+                [
+                    'selector' => '[data-tour="settings-seo"]',
+                    'title' => 'SEO y Metadatos',
+                    'body' => 'Configurá cómo se ve tu landing en Google y redes.',
+                    'required' => 'Ninguno (todo opcional)',
+                ],
+                [
+                    'selector' => '[data-tour="settings-backgrounds"]',
+                    'title' => 'Fondos',
+                    'body' => 'Elegí imagen o color para desktop y mobile.',
+                    'required' => 'Ninguno (todo opcional)',
+                ],
+                [
+                    'selector' => '[data-tour="settings-visibility"]',
+                    'title' => 'Visibilidad',
+                    'body' => 'Definí si la landing pública está disponible.',
+                    'required' => 'Ninguno',
+                    'scrollTopOnClose' => true,
+                ],
+            ],
+        ];
+    }
+
     protected function isColorValue(?string $value): bool
     {
         if (! $value) {
@@ -397,5 +399,4 @@ class MySettings extends Page
             || str_starts_with($value, 'rgb')
             || str_starts_with($value, 'hsl');
     }
-
 }

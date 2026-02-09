@@ -225,37 +225,43 @@
 
 {{-- BLOQUES MULTIMEDIA --}}
     @if(isset($multimedia))
-        <x-landing-blocks :blocks="$multimedia->data['blocks'] ?? []" />
+        <x-landing-blocks
+            :blocks="$multimedia->data['blocks'] ?? []"
+            :title="$multimedia->title ?? null"
+            :description="$multimedia->description ?? null"
+        />
     @endif
 {{-- Formulario de contacto --}}
-    <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10 max-w-md mx-auto px-4 py-10">
-        <h2 class="text-lg font-bold mb-3">Contacto</h2>
+    @if(isset($user) && $user)
+        <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10 max-w-md mx-auto px-4 py-10">
+            <h2 class="text-lg font-bold mb-3">Contacto</h2>
 
-        <form method="POST" action="{{ isset($user) ? route('landing.contact', $user->username) : route('landing.contact') }}">
-            @csrf
+            <form method="POST" action="{{ route('landing.contact', $user->username) }}">
+                @csrf
 
-            <input name="name" required placeholder="Tu nombre"
-                class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
+                <input name="name" required placeholder="Tu nombre"
+                    class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
 
-            <input name="email" type="email" required placeholder="Tu email"
-                class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
+                <input name="email" type="email" required placeholder="Tu email"
+                    class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
 
-            <textarea name="message" required rows="4"
-                placeholder="¿En qué puedo ayudarte?"
-                class="w-full mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl"></textarea>
+                <textarea name="message" required rows="4"
+                    placeholder="¿En qué puedo ayudarte?"
+                    class="w-full mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl"></textarea>
 
-            {{-- Turnstile --}}
-            <div class="mt-4 flex flex-col items-center">
-                <x-turnstile />
-                <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
-            </div>
+                {{-- Turnstile --}}
+                <div class="mt-4 flex flex-col items-center">
+                    <x-turnstile />
+                    <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
+                </div>
 
 
-            <button class="w-full bg-white text-black font-bold py-3 rounded-xl mt-4">
-                Enviar
-            </button>
-        </form>
-    </section>
+                <button class="w-full bg-white text-black font-bold py-3 rounded-xl mt-4">
+                    Enviar
+                </button>
+            </form>
+        </section>
+    @endif
 
 </main>
 {{-- Mapa FULL --}}
@@ -308,8 +314,12 @@
 </footer>
 
 {{-- Botones flotantes --}}
+@php
+    $whatsappDigits = preg_replace('/\D+/', '', $settings->whatsapp_number ?? '');
+@endphp
+@if (!empty($whatsappDigits))
 <a id="whatsappBtn" 
-   href="https://wa.me/{{ preg_replace('/\D+/', '', $settings->whatsapp_number ?? '') }}"
+   href="https://wa.me/{{ $whatsappDigits }}"
    target="_blank" rel="noopener"
    class="fixed right-6 bottom-6 z-50 w-14 h-14 flex items-center justify-center
           bg-[#25D366] text-white rounded-full
@@ -322,6 +332,7 @@
               transition-transform duration-500 ease-in-out
               hover:rotate-360"></i>
 </a>
+@endif
 
 <button id="shareBtn"
     class="group fixed left-6 bottom-6 z-50 bg-white text-black

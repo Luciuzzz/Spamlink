@@ -1,4 +1,6 @@
 <x-filament::page>
+    @include('filament.components.wizard-tour', ['steps' => $wizardSteps ?? []])
+
     <form wire:submit.prevent="save" class="space-y-6">
         {{ $this->form }}
 

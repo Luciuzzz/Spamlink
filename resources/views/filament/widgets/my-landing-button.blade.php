@@ -7,12 +7,13 @@
             </p>
         </div>
 
-        <a
+        <x-filament::button
+            tag="a"
             href="{{ $this->getLandingUrl() }}"
             target="_blank"
-            class="filament-button filament-button-size-md filament-button-color-primary"
+            color="primary"
         >
             Ver mi landing
-        </a>
+        </x-filament::button>
     </div>
 </x-filament::card>

@@ -43,15 +43,15 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
             ])
-            ->actions([
-                Tables\Actions\Action::make('landing')
+            ->recordActions([
+                \Filament\Actions\Action::make('landing')
                     ->label('Ver landing')
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->url(fn (User $record) => $record->username ? route('landing.user', $record->username) : null)
                     ->openUrlInNewTab()
                     ->visible(fn (User $record) => !empty($record->username)),
 
-                Tables\Actions\Action::make('settings')
+                \Filament\Actions\Action::make('settings')
                     ->label('Editar configuración')
                     ->icon('heroicon-o-cog-6-tooth')
                     ->url(fn (User $record) =>
@@ -59,7 +59,7 @@ class UserResource extends Resource
                     )
                     ->openUrlInNewTab(),
 
-                    Tables\Actions\Action::make('multimedia')
+                    \Filament\Actions\Action::make('multimedia')
                         ->label('Multimedia')
                         ->icon('heroicon-o-photo')
                         ->url(fn ($record) =>

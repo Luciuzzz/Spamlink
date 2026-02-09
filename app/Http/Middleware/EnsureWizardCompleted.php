@@ -15,7 +15,7 @@ class EnsureWizardCompleted
         }
 
         $user = Auth::user();
-        $currentRoute = $request->route()?->getName();
+        $currentRoute = $request->route()?->getName() ?? '';
 
         if ($request->headers->has('X-Livewire') || $request->routeIs('*livewire.update')) {
             return $next($request);
@@ -45,7 +45,7 @@ class EnsureWizardCompleted
         }
 
         // Wizard completado → acceso total
-        if (! $nextStep) {
+        if ($nextStep === null) {
             return $next($request);
         }
 
@@ -56,7 +56,7 @@ class EnsureWizardCompleted
         foreach ($allowedRoutes as $routePattern) {
             // Permite wildcard: filtra routes tipo "filament.admin.resources.social-links.*"
             $pattern = str_replace('*', '', $routePattern);
-            if (str_starts_with($currentRoute, $pattern)) {
+            if ($currentRoute !== '' && str_starts_with($currentRoute, $pattern)) {
                 return $next($request);
             }
         }

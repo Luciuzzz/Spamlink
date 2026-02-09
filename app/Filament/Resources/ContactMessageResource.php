@@ -77,9 +77,9 @@ class ContactMessageResource extends Resource
                 ->sortable(),
         ])
         ->defaultSort('created_at', 'desc')
-        ->actions([
+        ->recordActions([
             // Acción: Marcar como leído
-            \Filament\Tables\Actions\Action::make('markAsRead') // uso de namespace completo
+            \Filament\Actions\Action::make('markAsRead')
                 ->label('Marcar como leído')
                 ->icon('heroicon-o-check')
                 ->color('success')

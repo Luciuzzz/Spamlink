@@ -8,8 +8,10 @@ use Filament\Forms;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Table;
-use Filament\Schemas\Components\View;
+use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Section;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +28,7 @@ class SocialLinkResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            View::make('wizard_tour_social_links')
+            ViewField::make('wizard_tour_social_links')
                 ->view('filament.components.wizard-tour')
                 ->viewData([
                     'steps' => [
@@ -37,8 +39,8 @@ class SocialLinkResource extends Resource
                             'required' => 'Nombre, Tipo, Destino, Icono',
                         ],
                     ],
-                ])
-                ->columnSpanFull(),
+                ]),
+                // ->columnSpanFull(),
             Forms\Components\Hidden::make('user_id')
                 ->default(fn () => Auth::id())
                 ->required(),
@@ -96,7 +98,7 @@ class SocialLinkResource extends Resource
                         ->directory('social-icons')
                         ->image()
                         ->imageEditor()
-                        ->imageEditorAspectRatios(['1:1'])
+                        ->imageEditorAspectRatioOptions(['1:1'])
                         ->maxSize(1024),
 
                     Forms\Components\TextInput::make('order')
@@ -107,6 +109,7 @@ class SocialLinkResource extends Resource
                         ->label('Visible')
                         ->default(true),
                 ])
+                ->columnSpanFull()
                 ->columns(2),
         ]);
     }
@@ -130,10 +133,11 @@ class SocialLinkResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ]);
+            
     }
 
     public static function getPages(): array

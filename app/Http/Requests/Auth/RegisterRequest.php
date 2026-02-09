@@ -21,16 +21,21 @@ class RegisterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'cf-turnstile-response' => ['required'],
+            'cf-turnstile-response' => ['required', 'string'],
         ];
     }
 
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
+            $token = $this->input('cf-turnstile-response');
+            if (!is_string($token) || $token === '') {
+                return;
+            }
+
             try {
                 $validatorTurnstile = Validator::make(
-                    ['cf-turnstile-response' => $this->input('cf-turnstile-response')],
+                    ['cf-turnstile-response' => $token],
                     ['cf-turnstile-response' => [new Turnstile()]]
                 );
 

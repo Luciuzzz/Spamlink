@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    @include('filament.components.wizard-tour', ['steps' => $wizardSteps ?? []])
 
     {{ $this->form }}
 

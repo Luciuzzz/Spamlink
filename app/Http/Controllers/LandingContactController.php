@@ -14,7 +14,7 @@ class LandingContactController extends Controller
     {
         $user = User::where('username', $username)->firstOrFail();
         $settings = $user->setting; // Relación user->setting
-        $links = $user->links;     // Relación user->links
+        $links = $user->socialLinks; // Relación user->socialLinks
 
         return view('landing', compact('user', 'settings', 'links'));
     }
@@ -28,7 +28,7 @@ class LandingContactController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'message' => 'required|string',
-            'cf-turnstile-response' => ['required', new Turnstile()],
+            'cf-turnstile-response' => ['bail', 'required', 'string', new Turnstile()],
         ]);
 
         ContactMessage::create([

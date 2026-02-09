@@ -11,6 +11,8 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -35,6 +37,24 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Yellow,
             ])
+            ->maxContentWidth(Width::Full)
+            ->renderHook(PanelsRenderHook::HEAD_END, fn () => <<<'HTML'
+                <style>
+                    .fi-main {
+                        max-width: none !important;
+                        width: 100%;
+                    }
+                    .fi-page,
+                    .fi-page-content,
+                    .fi-sc,
+                    .fi-sc-component,
+                    .fi-section,
+                    .fi-section-content {
+                        width: 100%;
+                        max-width: none;
+                    }
+                </style>
+            HTML)
 
             // Resources
             ->discoverResources(

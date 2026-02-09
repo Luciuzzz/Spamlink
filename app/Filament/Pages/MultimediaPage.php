@@ -4,13 +4,14 @@ namespace App\Filament\Pages;
 
 use App\Models\LandingSection;
 use Filament\Forms;
-use Filament\Forms\Components\ViewField;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class MultimediaPage extends Page
 {
@@ -72,25 +73,14 @@ class MultimediaPage extends Page
         return $schema
             ->statePath('data')
             ->schema([
-                View::make('wizard_tour_multimedia')
-                    ->view('filament.components.wizard-tour')
-                    ->viewData([
-                        'steps' => [
-                            [
-                                'selector' => '[data-tour="multimedia-blocks"]',
-                                'title' => 'Bloques multimedia',
-                                'body' => 'Agregá bloques de texto, imágenes o video para tu landing.',
-                                'required' => 'Al menos un bloque activo con contenido',
-                            ],
-                        ],
-                    ])
-                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('title')
                     ->label('Título')
-                    ->required(),
+                    ->required()
+                    ->extraAttributes(['data-tour' => 'multimedia-title']),
 
                 Forms\Components\Textarea::make('description')
-                    ->label('Descripción'),
+                    ->label('Descripción')
+                    ->extraAttributes(['data-tour' => 'multimedia-description']),
 
                 Forms\Components\Toggle::make('is_active')
                     ->label('¿Activa?'),
@@ -109,12 +99,32 @@ class MultimediaPage extends Page
                                     ->required()
                                     ->extraInputAttributes(['style' => 'min-height: 200px; h-auto;'])
                                     ->placeholder('Escribí tu contenido aquí...')
+                                    ->json()
+                                    ->fileAttachmentsDisk('public')
+                                    ->fileAttachmentsDirectory('landing-images')
+                                    ->fileAttachmentsVisibility('public')
+                                    ->saveUploadedFileAttachmentUsing(function (TemporaryUploadedFile $file, Forms\Components\RichEditor $component): string {
+                                        Validator::validate(
+                                            ['file' => $file],
+                                            [
+                                                'file' => [
+                                                    'image',
+                                                    'dimensions:min_width=960,min_height=540,max_width=1920,max_height=1080',
+                                                ],
+                                            ],
+                                            [
+                                                'file.image' => 'El archivo debe ser una imagen válida.',
+                                                'file.dimensions' => 'La imagen debe medir entre 960x540 y 1920x1080 px.',
+                                            ],
+                                        );
+
+                                        return $file->store('landing-images', 'public');
+                                    })
                                     ->toolbarButtons([
                                         ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link'],
                                         ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd', 'alignJustify'],
                                         ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
                                         ['table', 'textColor', 'highlight', 'attachFiles'],
-                                        ['undo', 'redo'],
                                     ]),
                             ]),
 
@@ -126,7 +136,19 @@ class MultimediaPage extends Page
                                 Forms\Components\FileUpload::make('images')
                                     ->label('Imágenes')
                                     ->image()
+                                    ->disk('public')
+                                    ->visibility('public')
                                     ->directory('landing-images')
+                                    ->rules([
+                                        Rule::dimensions()
+                                            ->minWidth(960)
+                                            ->minHeight(540)
+                                            ->maxWidth(1920)
+                                            ->maxHeight(1080),
+                                    ])
+                                    ->validationMessages([
+                                        'dimensions' => 'La imagen debe medir entre 960x540 y 1920x1080 px.',
+                                    ])
                                     ->multiple(),
                             ]),
 
@@ -208,5 +230,31 @@ class MultimediaPage extends Page
     public static function canAccess(): bool
     {
         return Auth::check();
+    }
+
+    protected function getViewData(): array
+    {
+        return [
+            'wizardSteps' => [
+                [
+                    'selector' => '[data-tour="multimedia-title"]',
+                    'title' => 'Título de la sección',
+                    'body' => 'Aparece como encabezado del bloque multimedia en la landing.',
+                    'required' => 'Obligatorio',
+                ],
+                [
+                    'selector' => '[data-tour="multimedia-description"]',
+                    'title' => 'Descripción de la sección',
+                    'body' => 'Texto corto que acompaña al título (opcional, pero recomendado).',
+                    'required' => 'Opcional',
+                ],
+                [
+                    'selector' => '[data-tour="multimedia-blocks"]',
+                    'title' => 'Bloques multimedia',
+                    'body' => 'Agregá bloques de texto, imágenes o video para tu landing.',
+                    'required' => 'Al menos un bloque activo con contenido',
+                ],
+            ],
+        ];
     }
 }

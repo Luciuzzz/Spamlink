@@ -6,7 +6,7 @@ use App\Filament\Resources\ChangeLogResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
 
 class ListChangeLogs extends ListRecords
 {

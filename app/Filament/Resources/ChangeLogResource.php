@@ -10,7 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -81,7 +81,7 @@ class ChangeLogResource extends Resource
                     ->label('Usuario')
                     ->relationship('user', 'name'),
             ])
-            ->actions([
+            ->recordActions([
                 Action::make('verCambios')
                     ->icon('heroicon-o-eye')
                     ->label('')
