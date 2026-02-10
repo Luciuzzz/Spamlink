@@ -71,19 +71,19 @@
         }
     </style>
 @endonce
-<section class="mt-12 space-y-10 flex flex-col items-center">
+    <section class="multimedia-section">
     @if($title || $description)
-        <div class="text-center px-4">
+        <div class="multimedia-heading">
             @if($title)
-                <h1 class="text-3xl font-bold text-white">{{ $title }}</h1>
+                <h1 class="multimedia-title">{{ $title }}</h1>
             @endif
             @if($description)
-                <p class="mt-2 text-white/80">{{ $description }}</p>
+                <p class="multimedia-description">{{ $description }}</p>
             @endif
         </div>
     @endif
 
-    <div class="multimedia-blocks w-full flex flex-col items-center space-y-10">
+    <div class="multimedia-blocks">
         @foreach($blocks as $block)
             @php
                 if (! is_array($block)) {
@@ -133,11 +133,11 @@
                 @endphp
 
                 @if(!empty($images))
-                    <div class="w-full flex flex-col items-center space-y-3">
+                    <div class="slider-wrapper">
 
                         {{-- SLIDER --}}
                         <div id="{{ $sliderId }}"
-                            class="slider-container w-full max-w-xl relative overflow-hidden rounded-xl">
+                            class="slider-container">
 
                             @foreach($images as $index => $img)
                                 @php
@@ -180,22 +180,22 @@
                         </div>
 
                         {{-- CONTROLES --}}
-                        <div class="flex items-center justify-center gap-4">
+                        <div class="slider-controls">
 
                             {{-- Flecha izquierda --}}
-                            <button class="prev bg-white/20 hover:bg-white/40 text-white rounded-full px-4 py-2 text-2xl">
+                            <button class="slider-btn prev" type="button">
                                 ‹
                             </button>
 
                             {{-- Dots --}}
-                            <div class="dots flex gap-2">
+                            <div class="dots slider-dots">
                                 @foreach($images as $index => $img)
                                     <div class="dot {{ $index === 0 ? 'active' : '' }}"></div>
                                 @endforeach
                             </div>
 
                             {{-- Flecha derecha --}}
-                            <button class="next bg-white/20 hover:bg-white/40 text-white rounded-full px-4 py-2 text-2xl">
+                            <button class="slider-btn next" type="button">
                                 ›
                             </button>
                         </div>
@@ -270,8 +270,18 @@
 
                     {{-- CSS --}}
                     <style>
+                        .slider-wrapper {
+                            width: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 0.75rem;
+                        }
                         .slider-container {
-                            max-width: 100%;
+                            width: 100%;
+                            max-width: 640px;
+                            position: relative;
+                            overflow: hidden;
                             border-radius: 1rem;
                         }
                         .slide {
@@ -284,6 +294,7 @@
                             align-items: center;
                             border-radius: 1rem;
                             overflow: hidden;
+                            pointer-events: none;
                         }
                         .slide img {
                             max-width: 100%;
@@ -295,6 +306,31 @@
                         .slide.active {
                             opacity: 1;
                             position: relative;
+                        }
+                        .slider-controls {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 1rem;
+                            z-index: 2;
+                        }
+                        .slider-btn {
+                            background: rgba(255, 255, 255, 0.2);
+                            color: #ffffff;
+                            border: 0;
+                            border-radius: 999px;
+                            padding: 0.5rem 1rem;
+                            font-size: 1.75rem;
+                            cursor: pointer;
+                            transition: background-color 0.2s ease, transform 0.2s ease;
+                        }
+                        .slider-btn:hover {
+                            background: rgba(255, 255, 255, 0.4);
+                            transform: translateY(-1px);
+                        }
+                        .slider-dots {
+                            display: flex;
+                            gap: 0.5rem;
                         }
                         .dot {
                             width: 10px;

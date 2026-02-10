@@ -1,521 +1,368 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <title>{{ $settings?->meta_title ?? $settings?->company_name ?? 'Landing' }}</title>
+    <title>{{ $settings?->meta_title ?? ($settings?->company_name ?? 'Landing') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     {{-- Descripción y keywords --}}
-    @if(!empty($settings?->meta_description))
+    @if (!empty($settings?->meta_description))
         <meta name="description" content="{{ $settings->meta_description }}">
     @endif
-    @if(!empty($settings?->meta_keywords))
+    @if (!empty($settings?->meta_keywords))
         <meta name="keywords" content="{{ $settings->meta_keywords }}">
     @endif
 
     {{-- Open Graph / Facebook / WhatsApp --}}
-    <meta property="og:title" content="{{ $settings?->meta_title ?? $settings?->company_name ?? 'Landing' }}">
+    <meta property="og:title" content="{{ $settings?->meta_title ?? ($settings?->company_name ?? 'Landing') }}">
     <meta property="og:description" content="{{ $settings?->meta_description ?? '' }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    @if(!empty($settings?->meta_image_path))
-        <meta property="og:image" content="{{ asset('storage/'.$settings->meta_image_path) }}">
+    @if (!empty($settings?->meta_image_path))
+        <meta property="og:image" content="{{ asset('storage/' . $settings->meta_image_path) }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
     @endif
 
     {{-- Twitter Cards --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $settings?->twitter_title ?? $settings?->meta_title ?? $settings?->company_name ?? 'Landing' }}">
-    <meta name="twitter:description" content="{{ $settings?->twitter_description ?? $settings?->meta_description ?? '' }}">
-    @if(!empty($settings?->twitter_image_path))
-        <meta name="twitter:image" content="{{ asset('storage/'.$settings->twitter_image_path) }}">
+    <meta name="twitter:title"
+        content="{{ $settings?->twitter_title ?? ($settings?->meta_title ?? ($settings?->company_name ?? 'Landing')) }}">
+    <meta name="twitter:description"
+        content="{{ $settings?->twitter_description ?? ($settings?->meta_description ?? '') }}">
+    @if (!empty($settings?->twitter_image_path))
+        <meta name="twitter:image" content="{{ asset('storage/' . $settings->twitter_image_path) }}">
     @elseif(!empty($settings?->meta_image_path))
-        <meta name="twitter:image" content="{{ asset('storage/'.$settings->meta_image_path) }}">
+        <meta name="twitter:image" content="{{ asset('storage/' . $settings->meta_image_path) }}">
     @endif
 
-    {{-- Vite --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Astral CSS --}}
+    <link rel="stylesheet" href="{{ asset('landing/astral/assets/css/fontawesome-all.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('landing/astral/assets/css/main.css') }}" />
+    <noscript>
+        <link rel="stylesheet" href="{{ asset('landing/astral/assets/css/noscript.css') }}" />
+    </noscript>
 
     {{-- Leaflet CSS --}}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <!-- Font Awesome 6 Free (CDN) -->
-    <link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-      crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     {{-- Turnstile --}}
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
     @php
         $desktopBgValue = $settings?->bg_desktop_path;
-        $desktopIsColor = $desktopBgValue
-            && (str_starts_with($desktopBgValue, '#')
-                || str_starts_with($desktopBgValue, 'rgb')
-                || str_starts_with($desktopBgValue, 'hsl'));
-        $desktopBgImage = ($desktopBgValue && ! $desktopIsColor)
-            ? asset('storage/'.$desktopBgValue)
-            : null;
+        $desktopIsColor =
+            $desktopBgValue &&
+            (str_starts_with($desktopBgValue, '#') ||
+                str_starts_with($desktopBgValue, 'rgb') ||
+                str_starts_with($desktopBgValue, 'hsl'));
+        $desktopBgImage = $desktopBgValue && !$desktopIsColor ? asset('storage/' . $desktopBgValue) : null;
         $desktopBgColor = $desktopIsColor ? $desktopBgValue : null;
 
         $mobileBgValue = $settings?->bg_mobile_path ?: $settings?->bg_desktop_path;
-        $mobileIsColor = $mobileBgValue
-            && (str_starts_with($mobileBgValue, '#')
-                || str_starts_with($mobileBgValue, 'rgb')
-                || str_starts_with($mobileBgValue, 'hsl'));
-        $mobileBgImage = ($mobileBgValue && ! $mobileIsColor)
-            ? asset('storage/'.$mobileBgValue)
-            : null;
+        $mobileIsColor =
+            $mobileBgValue &&
+            (str_starts_with($mobileBgValue, '#') ||
+                str_starts_with($mobileBgValue, 'rgb') ||
+                str_starts_with($mobileBgValue, 'hsl'));
+        $mobileBgImage = $mobileBgValue && !$mobileIsColor ? asset('storage/' . $mobileBgValue) : null;
         $mobileBgColor = $mobileIsColor ? $mobileBgValue : null;
 
         $defaultBgColor = '#0b0b0b';
-        if (! $desktopBgImage && ! $desktopBgColor) {
+        if (!$desktopBgImage && !$desktopBgColor) {
             $desktopBgColor = $defaultBgColor;
         }
-        if (! $mobileBgImage && ! $mobileBgColor) {
+        if (!$mobileBgImage && !$mobileBgColor) {
             $mobileBgColor = $desktopBgColor ?? $defaultBgColor;
         }
 
         $overlayEnabled = $settings?->bg_overlay_enabled ?? true;
-        $overlayAlpha = $overlayEnabled
-            ? max(0.1, min(1, (float) ($settings?->bg_overlay_opacity ?? 0.55)))
-            : 0;
-
+        $overlayAlpha = $overlayEnabled ? max(0.1, min(1, (float) ($settings?->bg_overlay_opacity ?? 0.55))) : 0;
     @endphp
 
-    <style>
-        html, body { transform: none !important; }
-
-        body {
-            color: var(--landing-text, #ffffff);
-        }
-
-        .auto-contrast-light {
-            color: #111111;
-        }
-
-        .auto-contrast-light .text-white { color: #111111 !important; }
-        .auto-contrast-light .text-white\/90 { color: rgba(17, 17, 17, 0.9) !important; }
-        .auto-contrast-light .text-white\/80 { color: rgba(17, 17, 17, 0.8) !important; }
-        .auto-contrast-light .text-white\/60 { color: rgba(17, 17, 17, 0.6) !important; }
-        .auto-contrast-light .text-white\/40 { color: rgba(17, 17, 17, 0.4) !important; }
-        .auto-contrast-light a { color: #111111 !important; }
-
-        .auto-contrast-light .multimedia-blocks .text-white { color: #ffffff !important; }
-        .auto-contrast-light .multimedia-blocks .text-white\/90 { color: rgba(255, 255, 255, 0.9) !important; }
-        .auto-contrast-light .multimedia-blocks .text-white\/80 { color: rgba(255, 255, 255, 0.8) !important; }
-        .auto-contrast-light .multimedia-blocks a { color: #ffffff !important; }
-
-        .auto-contrast-light .links-section a {
-            background: rgba(0, 0, 0, 0.06) !important;
-            border-color: rgba(0, 0, 0, 0.18) !important;
-        }
-
-        .auto-contrast-light .links-section a:hover {
-            background: rgba(0, 0, 0, 0.12) !important;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
-        }
-
-        /* Fondo responsive */
-        #bg {
-            position: fixed;
-            inset: 0;
-            z-index: -10;
-            background-image: linear-gradient(rgba(0,0,0,var(--bg-overlay-alpha, .55)), rgba(0,0,0,var(--bg-overlay-alpha, .55))), var(--bg-image, none);
-            background-color: var(--bg-color, transparent);
-            background-size: cover;
-            background-position: center;
-        }
-
-        @media (max-width: 768px) {
-            #bg {
-                background-image: linear-gradient(rgba(0,0,0,var(--bg-overlay-alpha, .55)), rgba(0,0,0,var(--bg-overlay-alpha, .55))), var(--bg-image-mobile, var(--bg-image, none));
-                background-color: var(--bg-color-mobile, var(--bg-color, transparent));
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('landing/custom.css') }}" />
 
     {{-- Favicon --}}
-    @if(!empty($settings?->favicon_path))
-        <link rel="icon" type="image/png" href="{{ asset('storage/'.$settings->favicon_path) }}">
+    @if (!empty($settings?->favicon_path))
+        <link rel="icon" type="image/png" href="{{ asset('storage/' . $settings->favicon_path) }}">
     @endif
 </head>
 
-<body class="min-h-screen text-white">
+<body class="is-preload">
 
-{{-- Fondo --}}
-<div
-    id="bg"
-    style="
+    <div id="bg"
+        style="
         --bg-image: {{ $desktopBgImage ? "url('{$desktopBgImage}')" : 'none' }};
         --bg-color: {{ $desktopBgColor ?? 'transparent' }};
         --bg-overlay-alpha: {{ $overlayAlpha }};
         --bg-image-mobile: {{ $mobileBgImage ? "url('{$mobileBgImage}')" : 'none' }};
         --bg-color-mobile: {{ $mobileBgColor ?? 'transparent' }};
     "
-    data-bg-color="{{ $desktopBgColor ?? 'transparent' }}"
-    data-bg-color-mobile="{{ $mobileBgColor ?? ($desktopBgColor ?? 'transparent') }}"
-    data-has-image="{{ $desktopBgImage ? '1' : '0' }}"
-    data-has-image-mobile="{{ $mobileBgImage ? '1' : ($desktopBgImage ? '1' : '0') }}"
-    data-overlay-alpha="{{ $overlayAlpha }}"
-></div>
+        data-bg-color="{{ $desktopBgColor ?? 'transparent' }}"
+        data-bg-color-mobile="{{ $mobileBgColor ?? ($desktopBgColor ?? 'transparent') }}"
+        data-has-image="{{ $desktopBgImage ? '1' : '0' }}"
+        data-has-image-mobile="{{ $mobileBgImage ? '1' : ($desktopBgImage ? '1' : '0') }}"
+        data-overlay-alpha="{{ $overlayAlpha }}"></div>
 
-@php
-    $showCompanyName = $settings?->show_company_name ?? true;
-@endphp
+    @php
+        $showCompanyName = $settings?->show_company_name ?? true;
+    @endphp
 
-<header class="sticky top-0 z-50 h-20 flex items-center justify-center bg-transparent backdrop-blur border-b border-white/10">
-    @if(!empty($settings?->logo_path))
-        <img src="{{ asset('storage/'.$settings->logo_path) }}"
-             alt="{{ $settings->company_name }}"
-             class="max-h-14 max-w-[80%] object-contain">
-    @elseif($showCompanyName)
-        <span class="text-white font-bold">{{ $settings?->company_name ?? 'Landing' }}</span>
-    @endif
-</header>
+    @include('landing.partials.header')
 
-<main >{{-- class="max-w-md mx-auto px-4 py-10" --}}
-    <section class="text-center">
-        @if($showCompanyName)
-            <h1 class="text-3xl font-bold">{{ $settings?->company_name ?? 'Empresa' }}</h1>
-        @endif
+    <div id="wrapper">
 
-        @if(!empty($settings?->slogan))
-            <p class="mt-2 text-white/90">{{ $settings->slogan }}</p>
-        @endif
+        <nav id="nav">
+        <a href="#identity" class="icon solid fa-home"></a>
+            <a href="#links" class="icon solid fa-link"></a>
+        <a href="#multimedia" class="icon solid fa-folder"></a>
+            <a href="#contact" class="icon solid fa-envelope"></a>
+        </nav>
 
-        @if(!empty($settings?->description))
-            <p class="mt-3 text-sm text-white/80">{{ $settings->description }}</p>
-        @endif
+        <div id="main">
 
-        @php
-            $hasLocationText = !empty($settings?->location_text);
-            $hasCoords = !empty($settings?->latitude) && !empty($settings?->longitude);
-        @endphp
+            <section id="identity" class="panel intro">
+                <div class="panel-header">
+                    @if ($showCompanyName)
+                        <h1>{{ $settings?->company_name ?? 'Empresa' }}</h1>
+                    @endif
 
-        {{-- DIRECCIÓN --}}
-        @if ($hasLocationText || $hasCoords)
-            <p id="address-display" class="mt-4 text-sm text-white/80">
-                Dirección: {{ $hasLocationText ? $settings->location_text : 'Cargando dirección…' }}
-            </p>
-        @endif
-    </section>
+                    @if (!empty($settings?->slogan))
+                        <p>{{ $settings->slogan }}</p>
+                    @endif
 
-    {{-- Links --}}
-<section class="links-section mt-8 mx-auto grid max-w-3xl grid-cols-1 gap-4 px-4 py-10 sm:grid-cols-2 justify-items-center">
+                    @if (!empty($settings?->description))
+                        <p class="text-muted" style="margin-top: .6rem;">
+                            {{ $settings->description }}
+                        </p>
+                    @endif
 
-    @forelse ($links as $record)
+                    @php
+                        $hasLocationText = !empty($settings?->location_text);
+                        $hasCoords = !empty($settings?->latitude) && !empty($settings?->longitude);
+                    @endphp
 
-        <a href="{{ $record->full_url }}"
-           target="_blank"
-           rel="noopener"
-           @class([
-               'group block w-full max-w-sm rounded-xl px-4 py-3
-                bg-white/15 hover:bg-white/25
-                border border-white/20 backdrop-blur
-                transform transition-all duration-300
-                hover:scale-105 hover:shadow-lg',
-               'sm:col-span-2 sm:justify-self-center' => $loop->last && $loop->odd,
-           ])>
+                    @if ($hasLocationText || $hasCoords)
+                        <p id="address-display" class="text-muted" style="margin-top: 1rem;">
+                            Dirección: {{ $hasLocationText ? $settings->location_text : 'Cargando dirección…' }}
+                        </p>
+                    @endif
+                </div>
 
-            <div class="flex items-center gap-3">
-
-                {{-- ICONO --}}
-                @if (!empty($record->icon_path))
-                    <img
-                        src="{{ asset('storage/' . $record->icon_path) }}"
-                        alt="{{ $record->name }}"
-                        class="h-6 w-6 object-contain
-                               transition-transform duration-300
-                               group-hover:scale-110"
-                    >
-                @elseif (!empty($record->icon_class))
-                    <i class="{{ $record->icon_class }}"
-                       style="font-size: 1.4rem; color: {{ $record->icon_color }}"
-                       class="transition-transform duration-300 group-hover:scale-110"></i>
-                @else
-                    <i class="fa-solid fa-link text-white/60"
-                       style="font-size: 1.4rem"
-                       class="transition-transform duration-300 group-hover:scale-110"></i>
+                @if ($hasCoords)
+                    <div style="margin-top: 1.5rem;">
+                        <div id="mapPanel"
+                            style="height: 50vh; width: 100%; border-radius: 16px; border: 1px solid rgba(0,0,0,0.12);">
+                        </div>
+                    </div>
                 @endif
+            </section>
 
-                {{-- NOMBRE --}}
-                <div class="flex-1 font-medium transition-colors duration-300
-                            group-hover:text-white">
-                    {{ $record->name }}
+            <section id="links" class="panel">
+                <div class="panel-header">
+                    <h2>Nuestras Redes</h2>
                 </div>
 
-                {{-- ACCIÓN --}}
-                <div class="text-xs uppercase tracking-widest text-white/40
-                            transition-colors duration-300
-                            group-hover:text-white/80">
-                    Abrir
+                <section>
+                    <div class="row">
+                        @forelse ($links as $record)
+                            <div class="col-6 col-12-medium">
+                                <a href="{{ $record->full_url }}" target="_blank" rel="noopener" class="link-card">
+                                    <div class="link-row">
+                                        @if (!empty($record->icon_path))
+                                            <img src="{{ asset('storage/' . $record->icon_path) }}"
+                                                alt="{{ $record->name }}"
+                                                style="height: 28px; width: 28px; object-fit: contain;">
+                                        @elseif (!empty($record->icon_class))
+                                            <i class="{{ $record->icon_class }}"
+                                                style="font-size: 1.2rem; color: {{ $record->icon_color }}"></i>
+                                        @else
+                                            <i class="fas fa-link" style="font-size: 1.1rem; color: #777777"></i>
+                                        @endif
+
+                                        <span class="link-title">{{ $record->name }}</span>
+                                        <span class="link-action">Abrir</span>
+                                    </div>
+                                </a>
+                            </div>
+                        @empty
+                            <div class="col-12">
+                                <div class="links-empty">No hay enlaces configurados todavía.</div>
+                            </div>
+                        @endforelse
+                    </div>
+                </section>
+            </section>
+
+            <section id="multimedia" class="panel">
+                {{-- <div class="panel-header">
+                <h2>Multimedia</h2>
+            </div> --}}
+
+                @if (isset($multimedia))
+                    <x-landing-blocks :blocks="$multimedia->data['blocks'] ?? []" :title="$multimedia->title ?? null" :description="$multimedia->description ?? null" />
+                @else
+                    <p class="text-muted">No hay contenido multimedia configurado.</p>
+                @endif
+            </section>
+
+            <section id="contact" class="panel">
+                <div class="panel-header">
+                    <h2>Contacto</h2>
                 </div>
 
-            </div>
-        </a>
+                @if (isset($user) && $user)
+                    <form method="POST" action="{{ route('landing.contact', $user->username) }}">
+                        @csrf
 
-    @empty
-        <div class="text-center text-white/80 text-sm
-                    bg-white/5 rounded-xl border border-dashed border-white/20
-                    px-4 py-10 sm:col-span-2">
-            No hay enlaces configurados todavía.
-        </div>
-    @endforelse
+                        <div class="row">
+                            <div class="col-6 col-12-medium">
+                            <input name="name" required placeholder="Tu nombre" class="contact-input" />
+                            </div>
+                            <div class="col-6 col-12-medium">
+                            <input name="email" type="email" required placeholder="Tu email" class="contact-input" />
+                            </div>
+                            <div class="col-12">
+                            <textarea name="message" required rows="6" placeholder="¿En qué puedo ayudarte?" class="contact-input"></textarea>
+                            </div>
+                            <div class="col-12" style="margin-top: 1rem;">
+                                <div class="mt-4 flex flex-col items-center">
+                                    <x-turnstile />
+                                    <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <input type="submit" value="Enviar" />
+                            </div>
+                        </div>
+                    </form>
+                @else
+                    <p class="text-muted">Inicia sesión para enviar un mensaje.</p>
+                @endif
+            </section>
 
-</section>
-
-{{-- BLOQUES MULTIMEDIA --}}
-    @if(isset($multimedia))
-        <x-landing-blocks
-            :blocks="$multimedia->data['blocks'] ?? []"
-            :title="$multimedia->title ?? null"
-            :description="$multimedia->description ?? null"
-        />
-    @endif
-{{-- Formulario de contacto --}}
-    @if(isset($user) && $user)
-        <section class="mt-8 mb-10 bg-black/20 backdrop-blur p-6 rounded-xl border border-white/10 max-w-md mx-auto px-4 py-10">
-            <h2 class="text-lg font-bold mb-3">Contacto</h2>
-
-            <form method="POST" action="{{ route('landing.contact', $user->username) }}">
-                @csrf
-
-                <input name="name" required placeholder="Tu nombre"
-                    class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
-
-                <input name="email" type="email" required placeholder="Tu email"
-                    class="w-full mb-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl">
-
-                <textarea name="message" required rows="4"
-                    placeholder="¿En qué puedo ayudarte?"
-                    class="w-full mb-4 px-4 py-3 bg-white/5 border border-white/10 rounded-xl"></textarea>
-
-                {{-- Turnstile --}}
-                <div class="mt-4 flex flex-col items-center">
-                    <x-turnstile />
-                    <x-input-error :messages="$errors->get('cf-turnstile-response')" class="mt-2" />
-                </div>
-
-
-                <button class="w-full bg-white text-black font-bold py-3 rounded-xl mt-4">
-                    Enviar
-                </button>
-            </form>
-        </section>
-    @endif
-
-</main>
-{{-- Mapa FULL --}}
-@if ($hasCoords)
-    <section class="mt-8">
-        <h2 class="text-lg font-bold mb-3 text-center">Ubicación</h2>
-
-        <div class="w-screen flex justify-center overflow-x-hidden">
-            <div
-                id="mapPanel"
-                class="h-[50vh] w-[90vw] border border-white/20 rounded-xl z-0">
-            </div>
-        </div>
-    </section>
-@endif
-
-{{-- Footer --}}
-<footer id="landingFooter" class="relative w-full mt-12 bg-black/40 backdrop-blur border-t border-white/10 text-white text-sm">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-
-        {{-- IZQUIERDA --}}
-        <div class="flex-1 text-left text-white/70">
-            @if($showCompanyName)
-                &copy; {{ date('Y') }} {{ $settings->company_name ?? 'Empresa' }}. Todos los derechos reservados.
-            @endif
         </div>
 
-        {{-- CENTRO --}}
-        <div class="flex items-center gap-4 justify-center flex-1">
-            <img src="{{ asset('icons/logo.png') }}" alt="Logo" class="h-8 w-8 object-contain">
-            <span class="font-bold text-white text-lg">SpamLink</span>
-
-            {{-- Botón central --}}
-            @guest
-                <a href="{{ route('register') }}" class="px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 transition">
-                    ¿Querés el tuyo?
-                </a>
-            @else
-                <a href="{{ route('dashboard') }}" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    class="px-3 py-2 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 transition">
-                        Ir al panel
-                </a>
-
-            @endguest
-        </div>
-
-        {{-- DERECHA --}}
-        <div class="flex-1 text-right"></div>
     </div>
-</footer>
 
-{{-- Botones flotantes --}}
-@php
-    $whatsappDigits = preg_replace('/\D+/', '', $settings->whatsapp_number ?? '');
-@endphp
-@if (!empty($whatsappDigits))
-<a id="whatsappBtn" 
-   href="https://wa.me/{{ $whatsappDigits }}"
-   target="_blank" rel="noopener"
-   class="fixed right-6 bottom-6 z-50 w-14 h-14 flex items-center justify-center
-          bg-[#25D366] text-white rounded-full
-          shadow-xl backdrop-blur-md gap-2
-          px-4 py-2
-          transition-all duration-300 ease-in-out
-          hover:shadow-lg hover:scale-105">
+    @include('landing.partials.footer')
 
-    <i class="fa-brands fa-whatsapp text-[28px] 
-              transition-transform duration-500 ease-in-out
-              hover:rotate-360"></i>
-</a>
-@endif
+    @php
+        $whatsappDigits = preg_replace('/\D+/', '', $settings->whatsapp_number ?? '');
+    @endphp
+    @if (!empty($whatsappDigits))
+        <a id="whatsappBtn" href="https://wa.me/{{ $whatsappDigits }}" target="_blank" rel="noopener"
+            class="floating-whatsapp">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    @endif
 
-<button id="shareBtn"
-    class="group fixed left-6 bottom-6 z-50 bg-white text-black
-           border border-black backdrop-blur rounded-xl
-           flex items-center gap-2 px-4 py-2
-           shadow-md hover:shadow-lg
-           transition-all duration-300 ease-in-out
-           hover:scale-105">
+    <a id="shareBtn" class="floating-share">
+        Compartir
+        <i class="fas fa-retweet"></i>
+    </a>
 
-    <!-- Texto -->
-    Compartir
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ asset('landing/astral/assets/js/jquery.min.js') }}"></script>
+    <script src="{{ asset('landing/astral/assets/js/browser.min.js') }}"></script>
+    <script src="{{ asset('landing/astral/assets/js/breakpoints.min.js') }}"></script>
+    <script src="{{ asset('landing/astral/assets/js/util.js') }}"></script>
+    <script src="{{ asset('landing/astral/assets/js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addressEl = document.getElementById('address-display');
+            const LOCATION_TEXT = @json($settings->location_text ?? '');
+            const LAT = @json($settings->latitude ?? null);
+            const LNG = @json($settings->longitude ?? null);
+            let mapInstance = null;
 
-    <!-- Icono Font Awesome -->
-    <i class="fa-solid fa-retweet text-lg
-              transition-transform duration-700 ease-in-out
-              group-hover:rotate-[360deg]"></i>
-</button>
-
-
-{{-- Scripts --}}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const bg = document.getElementById('bg');
-    if (bg) {
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
-        const hasImage = (isMobile ? bg.dataset.hasImageMobile : bg.dataset.hasImage) === '1';
-        const bgColor = (isMobile ? bg.dataset.bgColorMobile : bg.dataset.bgColor) || 'transparent';
-        const overlayAlpha = Math.min(1, Math.max(0, parseFloat(bg.dataset.overlayAlpha || '0')));
-
-        const toRgb = (value) => {
-            if (!value) return null;
-            const v = value.trim().toLowerCase();
-            if (v === 'transparent') return null;
-
-            if (v.startsWith('#')) {
-                const hex = v.replace('#', '');
-                const full = hex.length === 3
-                    ? hex.split('').map(c => c + c).join('')
-                    : hex;
-                if (full.length !== 6) return null;
-                const num = parseInt(full, 16);
-                return {
-                    r: (num >> 16) & 255,
-                    g: (num >> 8) & 255,
-                    b: num & 255,
-                };
+            if (addressEl) {
+                if (LOCATION_TEXT && LOCATION_TEXT.trim() !== '') {
+                    addressEl.textContent = "Dirección: " + LOCATION_TEXT;
+                } else if (LAT && LNG) {
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${LAT}&lon=${LNG}&zoom=18`, {
+                            headers: {
+                                'User-Agent': 'MiApp/1.0'
+                            }
+                        })
+                        .then(r => r.json())
+                        .then(d => {
+                            addressEl.textContent = d.display_name ?
+                                "Dirección: " + d.display_name :
+                                "Dirección: No disponible";
+                        })
+                        .catch(() => {
+                            addressEl.textContent = "Dirección: No disponible";
+                        });
+                }
             }
 
-            const rgbMatch = v.match(/rgba?\(([^)]+)\)/);
-            if (rgbMatch) {
-                const parts = rgbMatch[1].split(',').map(p => parseFloat(p.trim()));
-                return { r: parts[0], g: parts[1], b: parts[2] };
+            function ensureMapVisible() {
+                if (!LAT || !LNG) return;
+                const mapEl = document.getElementById('mapPanel');
+                if (!mapEl) return;
+                const isVisible = mapEl.offsetParent !== null &&
+                    mapEl.getBoundingClientRect().width > 0 &&
+                    mapEl.getBoundingClientRect().height > 0;
+                if (!isVisible) return;
+                if (!mapInstance) {
+                    mapInstance = L.map('mapPanel', {
+                            zoomControl: false,
+                            attributionControl: false
+                        })
+                        .setView([LAT, LNG], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+                    L.marker([LAT, LNG]).addTo(mapInstance);
+                }
+                setTimeout(() => mapInstance.invalidateSize(), 200);
             }
 
-            return null;
-        };
-
-        const rgb = toRgb(bgColor);
-        if (!hasImage && rgb) {
-            const effective = {
-                r: rgb.r * (1 - overlayAlpha),
-                g: rgb.g * (1 - overlayAlpha),
-                b: rgb.b * (1 - overlayAlpha),
-            };
-            const luminance = (0.2126 * effective.r + 0.7152 * effective.g + 0.0722 * effective.b) / 255;
-            if (luminance > 0.72) {
-                document.body.classList.add('auto-contrast-light');
+            const shareBtn = document.getElementById('shareBtn');
+            if (shareBtn) {
+                shareBtn.addEventListener('click', async () => {
+                    const data = {
+                        title: "{{ $settings->meta_title ?? $settings->company_name }}",
+                        text: "{{ $settings->meta_description ?? '' }}",
+                        url: "{{ url()->current() }}"
+                    };
+                    if (navigator.share) {
+                        try {
+                            await navigator.share(data);
+                        } catch (e) {}
+                    } else {
+                        await navigator.clipboard.writeText(data.url);
+                        alert('Enlace copiado al portapapeles');
+                    }
+                });
             }
-        }
-    }
 
-    const addressEl = document.getElementById('address-display');
-    const LOCATION_TEXT = @json($settings->location_text ?? '');
-    const LAT = @json($settings->latitude ?? null);
-    const LNG = @json($settings->longitude ?? null);
+            const footer = document.getElementById('landingFooter');
+            const whatsappBtn = document.getElementById('whatsappBtn');
+            const defaultBottom = 24;
+            const offset = 10;
 
-    // Dirección: location_text o reverse geocoding
-    if (addressEl) {
-        if (LOCATION_TEXT && LOCATION_TEXT.trim() !== '') {
-            addressEl.textContent = "Dirección: " + LOCATION_TEXT;
-        } else if (LAT && LNG) {
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${LAT}&lon=${LNG}&zoom=18`, {
-                headers: { 'User-Agent': 'MiApp/1.0' }
-            })
-            .then(r => r.json())
-            .then(d => {
-                addressEl.textContent = d.display_name
-                    ? "Dirección: " + d.display_name
-                    : "Dirección: No disponible";
-            })
-            .catch(() => {
-                addressEl.textContent = "Dirección: No disponible";
+            function adjustFloatingButtons() {
+                if (!footer) return;
+                const footerRect = footer.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const minBottom = viewportHeight - footerRect.top + offset;
+                if (whatsappBtn) whatsappBtn.style.bottom = `${Math.max(defaultBottom, minBottom)}px`;
+                if (shareBtn) shareBtn.style.bottom = `${Math.max(defaultBottom, minBottom)}px`;
+            }
+            adjustFloatingButtons();
+            window.addEventListener('scroll', adjustFloatingButtons);
+            window.addEventListener('resize', adjustFloatingButtons);
+
+            window.addEventListener('hashchange', () => {
+                if (window.location.hash === '#identity' || window.location.hash === '') {
+                    setTimeout(ensureMapVisible, 300);
+                }
             });
-        }
-    }
-
-    // Mini mapa
-    if (LAT && LNG) {
-        const map = L.map('mapPanel', { zoomControl: false, attributionControl: false }).setView([LAT, LNG], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        L.marker([LAT, LNG]).addTo(map);
-        setTimeout(() => map.invalidateSize(), 300);
-    }
-
-    // Share button
-    const shareBtn = document.getElementById('shareBtn');
-    if (shareBtn) {
-        shareBtn.addEventListener('click', async () => {
-            const data = {
-                title: "{{ $settings->meta_title ?? $settings->company_name }}",
-                text: "{{ $settings->meta_description ?? '' }}",
-                url: "{{ url()->current() }}"
-            };
-            if (navigator.share) {
-                try { await navigator.share(data); } catch(e) {}
-            } else {
-                await navigator.clipboard.writeText(data.url);
-                alert('Enlace copiado al portapapeles');
-            }
+            window.addEventListener('resize', () => setTimeout(ensureMapVisible, 150));
+            setTimeout(ensureMapVisible, 400);
         });
-    }
-
-    // Ajustar botones flotantes sobre footer
-    const footer = document.getElementById('landingFooter');
-    const whatsappBtn = document.getElementById('whatsappBtn');
-    const defaultBottom = 24;
-    const offset = 10;
-    function adjustFloatingButtons() {
-        if (!footer) return;
-        const footerRect = footer.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const minBottom = viewportHeight - footerRect.top + offset;
-        if (whatsappBtn) whatsappBtn.style.bottom = `${Math.max(defaultBottom, minBottom)}px`;
-        if (shareBtn) shareBtn.style.bottom = `${Math.max(defaultBottom, minBottom)}px`;
-    }
-    adjustFloatingButtons();
-    window.addEventListener('scroll', adjustFloatingButtons);
-    window.addEventListener('resize', adjustFloatingButtons);
-});
-</script>
+    </script>
 </body>
+
 </html>
