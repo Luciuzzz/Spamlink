@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Http\Middleware\EnsureWizardCompleted;
+use Andreia\FilamentNordTheme\FilamentNordThemePlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -33,7 +34,8 @@ class AdminPanelProvider extends PanelProvider
             // Branding
             ->brandLogo(fn () => view('filament.admin.logo'))
             ->brandName('SpamLink')
-
+            ->plugin(FilamentNordThemePlugin::make())
+            ->viteTheme('resources/css/filament/admin-theme.css')
             ->colors([
                 'primary' => Color::Yellow,
             ])
@@ -53,6 +55,24 @@ class AdminPanelProvider extends PanelProvider
                         width: 100%;
                         max-width: none;
                     }
+
+                    /* Keep the app's dark palette while using Nord theme structure. */
+                    .dark .fi-layout,
+                    .dark .fi-body,
+                    .dark .fi-topbar nav,
+                    .dark .fi-sidebar-header {
+                        background-color: rgb(17 24 39) !important;
+                    }
+
+                    .dark .fi-section,
+                    .dark .fi-wi-widget,
+                    .dark .fi-ta-ctn,
+                    .dark .fi-dropdown-panel,
+                    .dark .fi-modal-window {
+                        background-color: rgb(31 41 55) !important;
+                        border-color: rgb(55 65 81) !important;
+                    }
+
                 </style>
             HTML)
 

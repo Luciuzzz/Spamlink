@@ -1,8 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Giro más lento que el estándar de Tailwind */
+/* Giro mas lento que el estandar de Tailwind */
 @keyframes spin-slow {
   0%   { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
