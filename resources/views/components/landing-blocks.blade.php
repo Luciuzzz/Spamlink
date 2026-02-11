@@ -30,6 +30,16 @@
         }
         .rich-content h2 { font-size: 1.4rem; }
         .rich-content h3 { font-size: 1.2rem; }
+        .rich-content h1,
+        .rich-content h2,
+        .rich-content h3,
+        .rich-content p,
+        .rich-content ul,
+        .rich-content ol,
+        .rich-content li,
+        .rich-content blockquote {
+            text-align: inherit;
+        }
         .rich-content a {
             text-decoration: underline;
             text-underline-offset: 3px;
@@ -69,7 +79,76 @@
             background: transparent;
             padding: 0;
         }
+        .rich-content .text-left { text-align: left; }
+        .rich-content .text-center { text-align: center; }
+        .rich-content .text-right { text-align: right; }
+        .rich-content .text-justify { text-align: justify; }
     </style>
+@endonce
+@once
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-slider]').forEach(wrapper => {
+                const slider = wrapper.querySelector('.slider-container');
+                if (!slider) return;
+                const slides = slider.querySelectorAll('.slide');
+                const prevBtn = wrapper.querySelector('[data-prev]');
+                const nextBtn = wrapper.querySelector('[data-next]');
+                const dots = wrapper.querySelectorAll('[data-dot]');
+                if (!slides.length) return;
+
+                let current = 0;
+                let timer = null;
+                const INTERVAL = 5000;
+
+                function showSlide(index) {
+                    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+                    dots.forEach((d, i) => d.classList.toggle('active', i === index));
+                    current = index;
+                }
+
+                function next() {
+                    showSlide((current + 1) % slides.length);
+                }
+
+                function prev() {
+                    showSlide((current - 1 + slides.length) % slides.length);
+                }
+
+                function startTimer() {
+                    timer = setInterval(next, INTERVAL);
+                }
+
+                function resetTimer() {
+                    clearInterval(timer);
+                    startTimer();
+                }
+
+                if (nextBtn) nextBtn.addEventListener('click', () => { next(); resetTimer(); });
+                if (prevBtn) prevBtn.addEventListener('click', () => { prev(); resetTimer(); });
+
+                dots.forEach((dot, i) => {
+                    dot.addEventListener('click', () => {
+                        showSlide(i);
+                        resetTimer();
+                    });
+                });
+
+                let startX = 0;
+                slider.addEventListener('touchstart', e => {
+                    startX = e.touches[0].clientX;
+                });
+                slider.addEventListener('touchend', e => {
+                    const endX = e.changedTouches[0].clientX;
+                    if (startX - endX > 40) next();
+                    else if (endX - startX > 40) prev();
+                    resetTimer();
+                });
+
+                startTimer();
+            });
+        });
+    </script>
 @endonce
     <section class="multimedia-section">
     @if($title || $description)
@@ -133,7 +212,7 @@
                 @endphp
 
                 @if(!empty($images))
-                    <div class="slider-wrapper">
+                    <div class="slider-wrapper" data-slider>
 
                         {{-- SLIDER --}}
                         <div id="{{ $sliderId }}"
@@ -183,90 +262,23 @@
                         <div class="slider-controls">
 
                             {{-- Flecha izquierda --}}
-                            <button class="slider-btn prev" type="button">
+                            <button class="slider-btn prev" type="button" data-prev>
                                 ‹
                             </button>
 
                             {{-- Dots --}}
-                            <div class="dots slider-dots">
+                            <div class="dots slider-dots" data-dots>
                                 @foreach($images as $index => $img)
-                                    <div class="dot {{ $index === 0 ? 'active' : '' }}"></div>
+                                    <div class="dot {{ $index === 0 ? 'active' : '' }}" data-dot="{{ $index }}"></div>
                                 @endforeach
                             </div>
 
                             {{-- Flecha derecha --}}
-                            <button class="slider-btn next" type="button">
+                            <button class="slider-btn next" type="button" data-next>
                                 ›
                             </button>
                         </div>
                     </div>
-
-                    {{-- JS --}}
-                    <script>
-                        (function () {
-                            const slider = document.getElementById('{{ $sliderId }}');
-                            const slides = slider.querySelectorAll('.slide');
-                            const prevBtn = slider.parentElement.querySelector('.prev');
-                            const nextBtn = slider.parentElement.querySelector('.next');
-                            const dots = slider.parentElement.querySelectorAll('.dot');
-
-                            let current = 0;
-                            let timer = null;
-                            const INTERVAL = 5000;
-
-                            function showSlide(index) {
-                                slides.forEach((s, i) => {
-                                    s.classList.toggle('active', i === index);
-                                });
-                                dots.forEach((d, i) => {
-                                    d.classList.toggle('active', i === index);
-                                });
-                                current = index;
-                            }
-
-                            function next() {
-                                showSlide((current + 1) % slides.length);
-                            }
-
-                            function prev() {
-                                showSlide((current - 1 + slides.length) % slides.length);
-                            }
-
-                            function startTimer() {
-                                timer = setInterval(next, INTERVAL);
-                            }
-
-                            function resetTimer() {
-                                clearInterval(timer);
-                                startTimer();
-                            }
-
-                            nextBtn.addEventListener('click', () => { next(); resetTimer(); });
-                            prevBtn.addEventListener('click', () => { prev(); resetTimer(); });
-
-                            dots.forEach((dot, i) => {
-                                dot.addEventListener('click', () => {
-                                    showSlide(i);
-                                    resetTimer();
-                                });
-                            });
-
-                            // Swipe móvil
-                            let startX = 0;
-                            slider.addEventListener('touchstart', e => {
-                                startX = e.touches[0].clientX;
-                            });
-
-                            slider.addEventListener('touchend', e => {
-                                const endX = e.changedTouches[0].clientX;
-                                if (startX - endX > 40) next();
-                                else if (endX - startX > 40) prev();
-                                resetTimer();
-                            });
-
-                            startTimer();
-                        })();
-                    </script>
 
                     {{-- CSS --}}
                     <style>
@@ -282,7 +294,9 @@
                             max-width: 640px;
                             position: relative;
                             overflow: hidden;
-                            border-radius: 1rem;
+                            aspect-ratio: 16 / 9;
+                            max-height: 420px;
+                            min-height: 240px;
                         }
                         .slide {
                             opacity: 0;
@@ -292,20 +306,34 @@
                             display: flex;
                             justify-content: center;
                             align-items: center;
-                            border-radius: 1rem;
-                            overflow: hidden;
+                            overflow: visible;
                             pointer-events: none;
                         }
                         .slide img {
-                            max-width: 100%;
-                            max-height: 60vh;
-                            width: auto;
-                            height: auto;
-                            border-radius: 1rem;
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                            border-radius: 25px;
+                        }
+                        @media (max-width: 736px) {
+                            .slider-container {
+                                aspect-ratio: 4 / 3;
+                                max-height: 260px;
+                                min-height: 200px;
+                            }
+                            .slider-wrapper {
+                                gap: 0.5rem;
+                            }
+                            .slider-controls {
+                                margin-top: -0.25rem;
+                            }
+                            .slide img {
+                                object-fit: contain;
+                            }
                         }
                         .slide.active {
                             opacity: 1;
-                            position: relative;
+                            pointer-events: auto;
                         }
                         .slider-controls {
                             display: flex;
@@ -315,8 +343,8 @@
                             z-index: 2;
                         }
                         .slider-btn {
-                            background: rgba(255, 255, 255, 0.2);
-                            color: #ffffff;
+                            background: rgba(0, 0, 0, 0.12);
+                            color: #111111;
                             border: 0;
                             border-radius: 999px;
                             padding: 0.5rem 1rem;
@@ -325,7 +353,7 @@
                             transition: background-color 0.2s ease, transform 0.2s ease;
                         }
                         .slider-btn:hover {
-                            background: rgba(255, 255, 255, 0.4);
+                            background: rgba(0, 0, 0, 0.2);
                             transform: translateY(-1px);
                         }
                         .slider-dots {
@@ -336,12 +364,12 @@
                             width: 10px;
                             height: 10px;
                             border-radius: 9999px;
-                            background: rgba(255,255,255,0.5);
+                            background: rgba(0,0,0,0.35);
                             cursor: pointer;
                             transition: background 0.3s;
                         }
                         .dot.active {
-                            background: white;
+                            background: #111111;
                         }
                         .auto-contrast-light .multimedia-blocks .prev,
                         .auto-contrast-light .multimedia-blocks .next {

@@ -1470,16 +1470,17 @@ input, select, textarea {
 		margin: 0 0 1em 0;
 	}
 
-	form input[type="text"],
-	form input[type="email"],
-	form input[type="password"],
-	form select,
-	form textarea {
-		-webkit-appearance: none;
-		border: 0;
-		background: #f4f4f4;
-		padding: 0.75em;
-		width: 100%;
+		form input[type="text"],
+		form input[type="email"],
+		form input[type="password"],
+		form select,
+		form textarea {
+			-webkit-appearance: none;
+			appearance: none;
+			border: 0;
+			background: #f4f4f4;
+			padding: 0.75em;
+			width: 100%;
 		-moz-transition: background-color .25s ease-in-out;
 		-webkit-transition: background-color .25s ease-in-out;
 		-ms-transition: background-color .25s ease-in-out;
@@ -1583,23 +1584,25 @@ input, select, textarea {
 
 /* Button */
 
-	input[type="button"],
-	input[type="submit"],
-	input[type="reset"],
-	button,
-	.button {
+		input[type="button"],
+		input[type="submit"],
+		input[type="reset"],
+		button,
+		.button {
 		-moz-transition: background-color .25s ease-in-out;
 		-webkit-transition: background-color .25s ease-in-out;
-		-ms-transition: background-color .25s ease-in-out;
-		transition: background-color .25s ease-in-out;
-		-webkit-appearance: none;
-		display: inline-block;
-		background-color: #222222;
-		color: #ffffff;
+			-ms-transition: background-color .25s ease-in-out;
+			transition: background-color .25s ease-in-out;
+			-webkit-appearance: none;
+			appearance: none;
+			display: inline-block;
+			background-color: #222222;
+			color: #ffffff;
 		border: 0;
 		cursor: pointer;
 		outline: 0;
 		padding: 0.7em 1.5em 0.7em 1.5em;
+		border-radius: 25px;
 	}
 
 		input[type="button"]:hover,

@@ -44,6 +44,11 @@
         <link rel="stylesheet" href="{{ asset('landing/astral/assets/css/noscript.css') }}" />
     </noscript>
 
+    {{-- Font Awesome 6 (CDN) --}}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     {{-- Leaflet CSS --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
@@ -129,7 +134,7 @@
                     @endif
 
                     @if (!empty($settings?->slogan))
-                        <p>{{ $settings->slogan }}</p>
+                        <p class="identity-slogan">{{ $settings->slogan }}</p>
                     @endif
 
                     @if (!empty($settings?->description))
@@ -150,13 +155,6 @@
                     @endif
                 </div>
 
-                @if ($hasCoords)
-                    <div style="margin-top: 1.5rem;">
-                        <div id="mapPanel"
-                            style="height: 50vh; width: 100%; border-radius: 16px; border: 1px solid rgba(0,0,0,0.12);">
-                        </div>
-                    </div>
-                @endif
             </section>
 
             <section id="links" class="panel">
@@ -167,7 +165,7 @@
                 <section>
                     <div class="row">
                         @forelse ($links as $record)
-                            <div class="col-6 col-12-medium">
+                        <div class="col-6 col-12-medium {{ $loop->last && $loop->odd ? 'links-center' : '' }}">
                                 <a href="{{ $record->full_url }}" target="_blank" rel="noopener" class="link-card">
                                     <div class="link-row">
                                         @if (!empty($record->icon_path))
@@ -246,6 +244,14 @@
 
     </div>
 
+    @if ($hasCoords)
+        <div id="mapSection" class="identity-map">
+            <div class="identity-map__inner">
+                <div id="mapPanel" class="identity-map__panel"></div>
+            </div>
+        </div>
+    @endif
+
     @include('landing.partials.footer')
 
     @php
@@ -301,7 +307,13 @@
             function ensureMapVisible() {
                 if (!LAT || !LNG) return;
                 const mapEl = document.getElementById('mapPanel');
+                const mapSection = document.getElementById('mapSection');
                 if (!mapEl) return;
+                const activeHash = window.location.hash || '#identity';
+                const shouldShow = activeHash === '#identity';
+                if (mapSection) {
+                    mapSection.classList.toggle('is-active', shouldShow);
+                }
                 const isVisible = mapEl.offsetParent !== null &&
                     mapEl.getBoundingClientRect().width > 0 &&
                     mapEl.getBoundingClientRect().height > 0;
@@ -355,9 +367,7 @@
             window.addEventListener('resize', adjustFloatingButtons);
 
             window.addEventListener('hashchange', () => {
-                if (window.location.hash === '#identity' || window.location.hash === '') {
-                    setTimeout(ensureMapVisible, 300);
-                }
+                setTimeout(ensureMapVisible, 300);
             });
             window.addEventListener('resize', () => setTimeout(ensureMapVisible, 150));
             setTimeout(ensureMapVisible, 400);
