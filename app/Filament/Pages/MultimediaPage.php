@@ -110,12 +110,12 @@ class MultimediaPage extends Page
                                             [
                                                 'file' => [
                                                     'image',
-                                                    'dimensions:min_width=960,min_height=540,max_width=1920,max_height=1080',
+                                                    'max:10240',
                                                 ],
                                             ],
                                             [
                                                 'file.image' => 'El archivo debe ser una imagen válida.',
-                                                'file.dimensions' => 'La imagen debe medir entre 960x540 y 1920x1080 px.',
+                                                'file.max' => 'La imagen no puede superar los 10 MB.',
                                             ],
                                         );
 
@@ -136,7 +136,11 @@ class MultimediaPage extends Page
                                     ->default(true),
                                 Forms\Components\FileUpload::make('images')
                                     ->label('Imágenes')
+                                    ->hint('Recorte las imgenes de un tamaño similar')
+                                    ->helperText('Recorta las imagenes de un tamaño similar')
                                     ->image()
+                                    ->imageEditor()
+                                    ->imageEditorAspectRatioOptions(['16:9'])
                                     ->disk('public')
                                     ->visibility('public')
                                     ->directory('landing-images')
@@ -160,6 +164,7 @@ class MultimediaPage extends Page
                                     ->default(true),
                                 Forms\Components\TextInput::make('embed_url')
                                     ->label('URL del video')
+                                    ->placeholder('Url de Youtube')
                                     ->url(),
                             ]),
                     ])

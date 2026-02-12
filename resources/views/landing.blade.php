@@ -194,10 +194,6 @@
             </section>
 
             <section id="multimedia" class="panel">
-                {{-- <div class="panel-header">
-                <h2>Multimedia</h2>
-            </div> --}}
-
                 @if (isset($multimedia))
                     <x-landing-blocks :blocks="$multimedia->data['blocks'] ?? []" :title="$multimedia->title ?? null" :description="$multimedia->description ?? null" />
                 @else
@@ -351,28 +347,49 @@
 
             const footer = document.getElementById('landingFooter');
             const whatsappBtn = document.getElementById('whatsappBtn');
+            const mapSection = document.getElementById('mapSection');
             const defaultBottom = 24;
             const offset = 10;
+            const mobileMapBottom = 96;
 
             function adjustFloatingButtons() {
-                if (!footer) return;
-                const footerRect = footer.getBoundingClientRect();
-                const viewportHeight = window.innerHeight;
-                const minBottom = viewportHeight - footerRect.top + offset;
-                if (whatsappBtn) whatsappBtn.style.bottom = `${Math.max(defaultBottom, minBottom)}px`;
-                if (shareBtn) shareBtn.style.bottom = `${Math.max(defaultBottom, minBottom)}px`;
+                const isMobile = window.matchMedia('(max-width: 736px)').matches;
+                const isMapActive = mapSection && mapSection.classList.contains('is-active');
+                let targetBottom = defaultBottom;
+
+                if (isMobile && isMapActive) {
+                    targetBottom = mobileMapBottom;
+                }
+
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const minBottom = viewportHeight - footerRect.top + offset;
+                    targetBottom = Math.max(targetBottom, minBottom);
+                }
+
+                if (whatsappBtn) whatsappBtn.style.bottom = `${targetBottom}px`;
+                if (shareBtn) shareBtn.style.bottom = `${targetBottom}px`;
             }
             adjustFloatingButtons();
             window.addEventListener('scroll', adjustFloatingButtons);
             window.addEventListener('resize', adjustFloatingButtons);
 
             window.addEventListener('hashchange', () => {
-                setTimeout(ensureMapVisible, 300);
+                setTimeout(() => {
+                    ensureMapVisible();
+                    adjustFloatingButtons();
+                }, 300);
             });
-            window.addEventListener('resize', () => setTimeout(ensureMapVisible, 150));
-            setTimeout(ensureMapVisible, 400);
+            window.addEventListener('resize', () => setTimeout(() => {
+                ensureMapVisible();
+                adjustFloatingButtons();
+            }, 150));
+            setTimeout(() => {
+                ensureMapVisible();
+                adjustFloatingButtons();
+            }, 400);
         });
     </script>
 </body>
-
 </html>

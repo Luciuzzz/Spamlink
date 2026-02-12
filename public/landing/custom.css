@@ -47,6 +47,8 @@ body {
     display: none;
     width: 100%;
     margin: 1.5rem auto 0;
+    position: relative;
+    z-index: 10;
 }
 
 .identity-map.is-active {
@@ -57,6 +59,8 @@ body {
     width: 45em;
     max-width: 100%;
     margin: 0 auto;
+    position: relative;
+    z-index: 10;
 }
 
 .identity-map__panel {
@@ -64,6 +68,8 @@ body {
     width: 100%;
     border-radius: 16px;
     border: 1px solid rgba(0, 0, 0, 0.12);
+    position: relative;
+    z-index: 10;
 }
 
 @media (max-width: 1280px) {
@@ -99,10 +105,23 @@ body {
 }
 
 @media (max-width: 736px) {
-    #identity.panel,
+    #identity.panel {
+        min-height: 0;
+    }
+
     #links.panel,
     #contact.panel {
         min-height: 520px;
+    }
+
+    .identity-map {
+        margin: 0.25rem auto 0;
+        padding-bottom: 1.5rem;
+    }
+
+    .identity-map__panel {
+        height: 36vh;
+        min-height: 180px;
     }
 }
 
@@ -258,6 +277,12 @@ body {
     #wrapper {
         padding-top: 0.5rem;
         justify-content: flex-start;
+        min-height: auto !important;
+        height: auto !important;
+        padding-bottom: 0;
+    }
+    #main {
+        margin-bottom: 0.5rem;
     }
 }
 
@@ -460,7 +485,7 @@ body {
 .floating-whatsapp,
 .floating-share {
     position: fixed;
-    z-index: 50;
+    z-index: 3000 !important;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;

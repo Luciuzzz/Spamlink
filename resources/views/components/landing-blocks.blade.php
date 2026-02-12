@@ -83,6 +83,28 @@
         .rich-content .text-center { text-align: center; }
         .rich-content .text-right { text-align: right; }
         .rich-content .text-justify { text-align: justify; }
+        .multimedia-video-container {
+            width: 100%;
+            max-width: 640px;
+            aspect-ratio: 16 / 9;
+            max-height: 420px;
+            min-height: 240px;
+            margin: 0 auto;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        .multimedia-video-iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        @media (max-width: 736px) {
+            .multimedia-video-container {
+                aspect-ratio: 4 / 3;
+                max-height: 260px;
+                min-height: 200px;
+            }
+        }
     </style>
 @endonce
 @once
@@ -419,10 +441,10 @@
                 @endphp
 
                 @if($url)
-                    <div class="aspect-video w-full max-w-xl mx-auto rounded-xl overflow-hidden">
+                    <div class="multimedia-video-container">
                         <iframe
                             src="{{ $url }}"
-                            class="w-full h-full"
+                            class="multimedia-video-iframe"
                             allow="autoplay; encrypted-media; picture-in-picture"
                             allowfullscreen
                         ></iframe>

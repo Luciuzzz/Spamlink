@@ -1,93 +1,97 @@
-# Proyecto Link Tree / Landing Page
+# Proyecto Spamlink
 
-Este proyecto es una aplicación web tipo "link tree" construida con **Laravel 12**, **Filament**, **TailwindCSS**, y **JavaScript**. Permite configurar enlaces, mostrar información de la empresa, mini-mapa con Leaflet y un modal de contacto con Turnstile (Cloudflare).
+Landing tipo "link in bio" construida con Laravel 12 + Filament 4. Permite administrar identidad visual, enlaces sociales, multimedia (texto/imágenes/video), mapa con Leaflet y formulario de contacto con Turnstile.
 
----
+## Stack principal
+
+- Laravel 12
+- Filament 4
+- TailwindCSS 4 + Vite
+- Leaflet
+- Cloudflare Turnstile
 
 ## Requisitos
-
-Antes de levantar el proyecto, asegúrate de tener instalado:
 
 - PHP >= 8.2
 - Composer
 - MySQL o MariaDB
 - Node.js >= 20
 - npm >= 10
-- Git
-- Opcional: Redis o similar si usas cache/sesiones avanzadas
 
----
+## Instalación local
 
-## Levantar el proyecto localmente
+1. Clonar repositorio.
 
-1. **Clonar el repositorio:**
+```bash
+git clone https://github.com/Luciuzzz/Spamlink.git
+cd Spamlink
+```
 
-        cd <NOMBRE_DEL_PROYECTO>        
-        git clone https://github.com/Luciuzzz/Spamlink.git
+2. Instalar dependencias.
 
-2. **Instalar dependencias PHP:**
+```bash
+composer install
+npm install
+```
 
-        composer install
+3. Configurar entorno.
 
-3. **Instalar dependencias JS y compilar assets:**
+```bash
+cp .env.example .env
+php artisan key:generate
+php artisan storage:link
+```
 
-        npm install
-        npm run dev   # Para desarrollo
-        npm run build # Para producción
+4. Configurar variables en `.env`:
 
-4. **Configurar archivo .env:**
+```env
+APP_URL=http://127.0.0.1:8000
 
-        cp .env.example .env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nombre_de_tu_bd
+DB_USERNAME=tu_usuario
+DB_PASSWORD=tu_password
 
-5. **Edita las variables:**
+SERVICES_TURNSTILE_SITE_KEY=tu_site_key
+SERVICES_TURNSTILE_SECRET_KEY=tu_secret_key
+```
 
-    APP_URL=http://localhost:8000
+5. Migrar base de datos.
 
-    DB_CONNECTION=mysql
+```bash
+php artisan migrate
+```
 
-    DB_HOST=127.0.0.1
+6. Levantar entorno de desarrollo.
 
-    DB_PORT=3306
+```bash
+composer run dev
+```
 
-    DB_DATABASE=nombre_de_tu_bd
+Alternativa mínima:
 
-    DB_USERNAME=tu_usuario
+```bash
+php artisan serve
+npm run dev
+```
 
-    DB_PASSWORD=tu_password
+## Funcionalidades actuales
 
-    SERVICES_TURNSTILE_SITE_KEY=tu_site_key
+- Gestión de enlaces sociales con íconos.
+- Sección multimedia configurable por bloques.
+- Cargador de imágenes multimedia con cropper (relación 16:9).
+- Mapa de ubicación (Leaflet) en la sección de identidad.
+- Botones flotantes (WhatsApp y compartir) con corrección de superposición sobre el mapa.
+- Navegación dinámica: el ícono de multimedia solo aparece si la sección multimedia está activa.
+- Protección anti-spam en contacto con Turnstile.
 
-    SERVICES_TURNSTILE_SECRET_KEY=tu_secret_key
+## Comandos útiles
 
-6. **Generar key de aplicación y migrar base de datos:**
-
-        php artisan key:generate
-        php artisan migrate
-        php artisan storage:link
-
-7. **Levantar servidor de desarrollo:**
-
-        php artisan serve
-
-Por defecto, estará disponible en: http://127.0.0.1:8000
-
-Consideraciones adicionales
-
-- El mini-mapa usa Leaflet y requiere conexión a internet para los tiles de OpenStreetMap.
-
-- Los fondos responsivos se configuran desde la sección Settings de Filament.
-
-- Para ver cambios en CSS/JS en desarrollo, usar npm run dev y recargar la página.
-
-- Asegúrate de tener permisos de escritura en storage y bootstrap/cache.
-
-**Comandos útiles**
-    
-        php artisan route:list → Ver rutas disponibles.
-    
-        php artisan migrate:rollback → Revertir última migración.
-    
-        npm run watch → Mantener compilación automática de assets.
-
-
----
+```bash
+php artisan route:list
+php artisan migrate:rollback
+php artisan test
+npm run build
+```

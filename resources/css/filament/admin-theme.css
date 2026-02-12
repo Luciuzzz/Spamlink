@@ -1,1 +1,80 @@
 @import '../../../vendor/andreia/filament-nord-theme/resources/css/theme.css';
+
+@layer components {
+    .fi-main,
+    .fi-page,
+    .fi-page-content,
+    .fi-sc,
+    .fi-sc-component,
+    .fi-section,
+    .fi-section-content {
+        width: 100%;
+        max-width: none;
+    }
+
+    .fi-sidebar {
+        border-right-width: 1px;
+        border-right-style: solid;
+        border-right-color: rgb(255 255 255 / 0.1);
+    }
+
+    .fi-sidebar-item .fi-sidebar-item-button,
+    .fi-topbar-item .fi-topbar-item-button {
+        border-radius: 0.75rem;
+    }
+
+    .fi-sidebar-item-active .fi-sidebar-item-button,
+    .fi-topbar-item-active .fi-topbar-item-button {
+        box-shadow: 0 0 0 1px rgb(255 255 255 / 0.15);
+    }
+
+    .fi-section,
+    .fi-wi-widget,
+    .fi-ta-ctn {
+        border-radius: 1rem;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    .fi-section-header {
+        border-bottom-width: 1px;
+        border-bottom-style: solid;
+        border-bottom-color: rgb(255 255 255 / 0.05);
+    }
+
+    .fi-input-wrp,
+    .fi-select-input,
+    .fi-textarea,
+    .fi-fo-field-wrp .choices__inner {
+        border-radius: 0.75rem;
+    }
+
+    .fi-btn {
+        border-radius: 0.75rem;
+    }
+
+    .fi-badge {
+        border-radius: 0.5rem;
+    }
+
+    .fi-ta-row {
+        transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+    }
+
+    .dark .fi-layout,
+    .dark .fi-body,
+    .dark .fi-topbar nav,
+    .dark .fi-sidebar-header {
+        background-color: rgb(17 24 39);
+    }
+
+    .dark .fi-section,
+    .dark .fi-wi-widget,
+    .dark .fi-ta-ctn,
+    .dark .fi-dropdown-panel,
+    .dark .fi-modal-window {
+        background-color: rgb(31 41 55);
+        border-color: rgb(55 65 81);
+    }
+}

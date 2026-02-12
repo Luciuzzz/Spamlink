@@ -128,9 +128,11 @@ class SocialLinkResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('type')
+                    ->label('Tipo')
                     ->badge(),
 
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label('Estado')
                     ->boolean(),
             ])
             ->recordActions([

@@ -2,9 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>En mantenimiento</title>
+    <title>Página no encontrada</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <style>
         html, body { height: 100%; margin: 0; }
         body {
@@ -33,14 +32,14 @@
 
         .status-card p {
             margin: 0;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.82);
         }
     </style>
 </head>
 <body>
     <main class="status-card">
-        <h1>Volvemos pronto</h1>
-        <p>Estamos haciendo mejoras.</p>
+        <h1>Esta página no existe</h1>
+        <p>Revisá el enlace o volvé a intentarlo desde el inicio.</p>
     </main>
 </body>
 </html>
