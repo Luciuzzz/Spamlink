@@ -21,15 +21,24 @@ class LoginRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-            'cf-turnstile-response' => ['required'],
         ];
+
+        if (config('services.turnstile.enabled', false)) {
+            $rules['cf-turnstile-response'] = ['required'];
+        }
+
+        return $rules;
     }
 
     public function withValidator($validator)
     {
+        if (! config('services.turnstile.enabled', false)) {
+            return;
+        }
+
         $validator->after(function ($validator) {
             try {
                 $validatorTurnstile = Validator::make(

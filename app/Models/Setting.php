@@ -18,6 +18,10 @@ class Setting extends Model
         'bg_mobile_path',
         'bg_overlay_enabled',
         'bg_overlay_opacity',
+        'panel_bg_color',
+        'panel_bg_opacity',
+        'panel_text_color',
+        'panel_text_opacity',
         'whatsapp_number',
         'location_text',
         'latitude',
@@ -47,6 +51,8 @@ class Setting extends Model
         'landing_available' => 'boolean',
         'bg_overlay_enabled' => 'boolean',
         'bg_overlay_opacity' => 'float',
+        'panel_bg_opacity' => 'float',
+        'panel_text_opacity' => 'float',
         'show_company_name' => 'boolean',
     ];
 

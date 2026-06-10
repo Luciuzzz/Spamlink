@@ -87,6 +87,27 @@
     @endphp
 
     <link rel="stylesheet" href="{{ asset('landing/custom.css') }}" />
+    @php
+        function hexToRgba(string $hex, float $opacity): string {
+            $hex = ltrim($hex, '#');
+            if (strlen($hex) === 6) {
+                [$r, $g, $b] = [hexdec(substr($hex,0,2)), hexdec(substr($hex,2,2)), hexdec(substr($hex,4,2))];
+                return "rgba({$r},{$g},{$b},{$opacity})";
+            }
+            return $hex;
+        }
+
+        $panelBgOpacity  = max(0, min(1, (float) ($settings?->panel_bg_opacity  ?? 0.94)));
+        $panelTextOpacity = max(0, min(1, (float) ($settings?->panel_text_opacity ?? 1)));
+        $panelBgCss   = hexToRgba($settings?->panel_bg_color   ?: '#ffffff', $panelBgOpacity);
+        $panelTextCss = hexToRgba($settings?->panel_text_color ?: '#1f1f1f', $panelTextOpacity);
+    @endphp
+    <style>
+        :root {
+            --panel-bg:   {{ $panelBgCss }};
+            --panel-text: {{ $panelTextCss }};
+        }
+    </style>
 
     {{-- Favicon --}}
     @if (!empty($settings?->favicon_path))
@@ -375,6 +396,30 @@
             window.addEventListener('scroll', adjustFloatingButtons);
             window.addEventListener('resize', adjustFloatingButtons);
 
+            // Fix: al salir de pantalla completa el navegador hace "back" en el historial
+            // y cambia el hash. Guardamos el hash actual antes de entrar y lo restauramos al salir.
+            let _fullscreenSavedHash = null;
+
+            function onFullscreenChange() {
+                const isFullscreen = !!(
+                    document.fullscreenElement ||
+                    document.webkitFullscreenElement ||
+                    document.mozFullScreenElement
+                );
+                if (isFullscreen) {
+                    _fullscreenSavedHash = window.location.hash || '#identity';
+                } else if (_fullscreenSavedHash !== null) {
+                    if (window.location.hash !== _fullscreenSavedHash) {
+                        history.replaceState(null, '', _fullscreenSavedHash);
+                    }
+                    _fullscreenSavedHash = null;
+                }
+            }
+
+            document.addEventListener('fullscreenchange', onFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+            document.addEventListener('mozfullscreenchange', onFullscreenChange);
+
             window.addEventListener('hashchange', () => {
                 setTimeout(() => {
                     ensureMapVisible();
@@ -390,6 +435,29 @@
                 adjustFloatingButtons();
             }, 400);
         });
+    </script>
+
+    <script>
+        (function () {
+            const endpoint = "{{ route('landing.last-updated', $user->username) }}";
+            let lastKnown = null;
+
+            function check() {
+                fetch(endpoint)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (lastKnown === null) {
+                            lastKnown = data.last_updated;
+                        } else if (data.last_updated !== lastKnown) {
+                            location.reload();
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            check();
+            setInterval(check, 10000);
+        })();
     </script>
 </body>
 </html>

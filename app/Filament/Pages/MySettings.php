@@ -247,6 +247,32 @@ class MySettings extends Page
                             ->default(0.55)
                             ->helperText('De 0.1 a 1.0')
                             ->disabled(fn (Get $get) => ! $get('bg_overlay_enabled')),
+
+                        Forms\Components\ColorPicker::make('panel_bg_color')
+                            ->label('Color del panel central')
+                            ->helperText('Color de fondo del contenedor. Por defecto: blanco.'),
+
+                        Forms\Components\ColorPicker::make('panel_text_color')
+                            ->label('Color del texto del panel')
+                            ->helperText('Color del texto dentro del contenedor. Por defecto: negro.'),
+
+                        RangeSlider::make('panel_bg_opacity')
+                            ->label('Opacidad del panel')
+                            ->min(0)
+                            ->max(1)
+                            ->step(0.05)
+                            ->default(0.94)
+                            ->helperText('0 = transparente, 1 = sólido')
+                            ->columnSpanFull(),
+
+                        RangeSlider::make('panel_text_opacity')
+                            ->label('Opacidad del texto del panel')
+                            ->min(0)
+                            ->max(1)
+                            ->step(0.05)
+                            ->default(1)
+                            ->helperText('0 = invisible, 1 = sólido')
+                            ->columnSpanFull(),
                     ])
                     ->columns(2),
 
@@ -296,6 +322,8 @@ class MySettings extends Page
         $setting->bg_overlay_enabled = $validated['bg_overlay_enabled'] ?? true;
         $setting->bg_overlay_opacity = $validated['bg_overlay_opacity'] ?? 0.55;
         $setting->show_company_name = $validated['show_company_name'] ?? true;
+        $setting->panel_bg_opacity   = (float) ($validated['panel_bg_opacity']   ?? 0.94);
+        $setting->panel_text_opacity = (float) ($validated['panel_text_opacity'] ?? 1);
 
         if (!empty($validated['latitude']) && !empty($validated['longitude'])) {
             $lat = $validated['latitude'];

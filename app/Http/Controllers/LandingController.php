@@ -7,6 +7,7 @@ use App\Models\ContactMessage;
 use App\Models\Setting;
 use App\Models\SocialLink;
 use App\Models\LandingSection;
+use Illuminate\Http\JsonResponse;
 
 class LandingController extends Controller
 {
@@ -25,6 +26,21 @@ class LandingController extends Controller
         }
 
         return redirect()->to($previous);
+    }
+
+    public function lastUpdated(string $username): JsonResponse
+    {
+        $user = User::where('username', $username)->firstOrFail();
+
+        $timestamps = [
+            Setting::where('user_id', $user->id)->value('updated_at'),
+            SocialLink::where('user_id', $user->id)->max('updated_at'),
+            LandingSection::where('user_id', $user->id)->max('updated_at'),
+        ];
+
+        $latest = collect($timestamps)->filter()->max();
+
+        return response()->json(['last_updated' => $latest]);
     }
 
     // Landing de un usuario

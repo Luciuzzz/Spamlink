@@ -24,12 +24,17 @@ class LandingContactController extends Controller
     {
         $user = User::where('username', $username)->firstOrFail();
 
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'message' => 'required|string',
-            'cf-turnstile-response' => ['bail', 'required', 'string', new Turnstile()],
-        ]);
+        ];
+
+        if (config('services.turnstile.enabled', false)) {
+            $rules['cf-turnstile-response'] = ['bail', 'required', 'string', new Turnstile()];
+        }
+
+        $request->validate($rules);
 
         ContactMessage::create([
             'user_id' => $user->id,
