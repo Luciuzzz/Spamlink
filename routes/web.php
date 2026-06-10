@@ -7,6 +7,7 @@ use App\Http\Controllers\LandingContactController;
 
 Route::get('/', [LandingController::class, 'show'])->name('home');
 Route::get('/u/{username}', [LandingController::class, 'showUser'])->name('landing.user');
+Route::get('/u/{username}/last-updated', [LandingController::class, 'lastUpdated'])->name('landing.last-updated');
 Route::get('/landing/{username}', [LandingController::class, 'showUser'])
     ->name('landing.show');
 
