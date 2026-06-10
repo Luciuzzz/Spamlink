@@ -280,7 +280,8 @@
                             @endforeach
                         </div>
 
-                        {{-- CONTROLES --}}
+                        {{-- CONTROLES: solo si hay más de una imagen --}}
+                        @if(count($images) > 1)
                         <div class="slider-controls">
 
                             {{-- Flecha izquierda --}}
@@ -300,6 +301,7 @@
                                 ›
                             </button>
                         </div>
+                        @endif
                     </div>
 
                     {{-- CSS --}}

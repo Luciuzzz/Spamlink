@@ -34,6 +34,7 @@ class AdminPanelProvider extends PanelProvider
             // Branding
             ->brandLogo(fn () => view('filament.admin.logo'))
             ->brandName('SpamLink')
+            ->favicon(asset('icons/logo.png'))
             ->plugin(FilamentNordThemePlugin::make())
             ->viteTheme('resources/css/filament/admin-theme.css')
             ->colors([
