@@ -1,0 +1,41 @@
+# Dependencias (se reinstalan dentro de la imagen)
+/vendor
+/node_modules
+
+# Assets compilados (se generan en la etapa de build)
+/public/build
+/public/hot
+/public/storage
+
+# Entorno y secretos
+.env
+.env.backup
+.env.production
+auth.json
+
+# Git y editores
+.git
+.gitignore
+.idea
+.vscode
+.fleet
+.nova
+.zed
+
+# Logs y cache
+*.log
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+.phpunit.result.cache
+/.phpunit.cache
+
+# Base de datos local
+/database/*.sqlite
+
+# Otros
+_ide_helper.php
+Thumbs.db
+.DS_Store
+docker/evidencias

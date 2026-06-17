@@ -1,0 +1,44 @@
+# =========================================================
+#  Spamlink - Configuracion de despliegue en Render
+#  Render detecta este archivo (Blueprint) y crea el servicio.
+#  Tambien se puede crear el servicio manualmente desde el panel.
+# =========================================================
+services:
+  - type: web
+    name: spamlink
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    branch: main
+    healthCheckPath: /
+    envVars:
+      - key: APP_NAME
+        value: Spamlink
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      # Render genera una clave; tambien podes fijar la tuya con: php artisan key:generate --show
+      - key: APP_KEY
+        sync: false
+      # Render inyecta APP_URL automaticamente con la URL publica del servicio
+      - key: APP_URL
+        fromService:
+          type: web
+          name: spamlink
+          property: hostport
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: LOG_CHANNEL
+        value: stderr
+      # Claves de Cloudflare Turnstile (cargar valores reales en el panel)
+      - key: SERVICES_TURNSTILE_SITE_KEY
+        sync: false
+      - key: SERVICES_TURNSTILE_SECRET_KEY
+        sync: false

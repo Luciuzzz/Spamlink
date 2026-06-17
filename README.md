@@ -2,6 +2,13 @@
 
 Landing tipo "link in bio" construida con Laravel 12 + Filament 4. Permite administrar identidad visual, enlaces sociales, multimedia (texto/imágenes/video), mapa con Leaflet y formulario de contacto con Turnstile.
 
+## 🔗 Enlaces del proyecto
+
+- **Despliegue (cloud):** https://spamlink.onrender.com  <!-- TODO: reemplazar por la URL real de Render -->
+- **Repositorio:** https://github.com/Luciuzzz/Spamlink
+- **Tablero Trello:** <!-- TODO: pegar link del tablero -->
+- **Video de exposición:** <!-- TODO: pegar link del video -->
+
 ## Stack principal
 
 - Laravel 12
@@ -127,3 +134,92 @@ Para automatizarlo con el scheduler de Laravel, agrega este cron:
 ```
 
 Si vas a guardar los backups en el HDD, apunta `BACKUP_PATH` a la ruta montada del disco, no a `/home/luis`.
+
+---
+
+## 🐳 Contenerización con Docker
+
+El proyecto incluye un `Dockerfile` multi-stage que compila los assets con Vite
+(Node 20) y sirve la aplicación con PHP 8.2 + Apache. Por defecto usa **SQLite**,
+por lo que el contenedor funciona sin base de datos externa.
+
+### Construir la imagen
+
+```bash
+docker build -t spamlink .
+```
+
+### Ejecutar el contenedor
+
+```bash
+docker run -d --name spamlink-app -p 8080:8080 spamlink
+```
+
+La aplicación queda disponible en: **http://localhost:8080**
+
+### Comandos auxiliares
+
+```bash
+docker ps                  # Ver contenedores en ejecución
+docker logs spamlink-app   # Ver logs del contenedor
+docker rm -f spamlink-app  # Detener y eliminar el contenedor
+```
+
+> **Evidencias:** las capturas de `docker build`, `docker run` y la app
+> funcionando en el contenedor están en [`docs/evidencias/`](docs/evidencias/).
+
+---
+
+## ☁️ Despliegue en la nube (Render)
+
+La aplicación está desplegada en **Render** usando el mismo `Dockerfile`.
+La configuración del servicio está declarada en [`render.yaml`](render.yaml).
+
+Pasos para desplegar:
+
+1. Crear una cuenta en [Render](https://render.com).
+2. **New + → Web Service** y conectar el repositorio de GitHub.
+3. Render detecta el `Dockerfile` (runtime **Docker**).
+4. Cargar las variables de entorno (`APP_KEY`, claves de Turnstile, etc.).
+5. **Create Web Service** → Render construye la imagen y publica la app.
+
+> La URL pública del despliegue está al inicio de este README.
+
+---
+
+## ⚙️ Automatización del despliegue
+
+Scripts que automatizan `git add` + `commit` + `push` + `docker build` + `docker run`.
+
+### Windows
+
+```bat
+deploy.bat "mensaje de commit"
+```
+
+### Linux / macOS
+
+```bash
+chmod +x deploy.sh        # solo la primera vez
+./deploy.sh "mensaje de commit"
+```
+
+Si no se pasa mensaje de commit, se genera uno automático con fecha y hora.
+
+### Automatización programada (Plan B)
+
+La ejecución programada con **Crontab** (Linux) y **Programador de tareas**
+(Windows) está documentada en
+[`docs/automatizacion-programada.md`](docs/automatizacion-programada.md).
+
+---
+
+## 👥 Integrantes y distribución de tareas
+
+| Integrante | Rama | Aporte principal |
+|------------|------|------------------|
+| <!-- Nombre 1 --> | `main` / `EnzoCalderon203` | <!-- describir --> |
+| <!-- Nombre 2 --> | `rich` | <!-- describir --> |
+| <!-- Nombre 3 --> | `wizard` | <!-- describir --> |
+
+El flujo de trabajo usó ramas por integrante y **Pull Requests** hacia `main`.
