@@ -67,8 +67,9 @@ services:
         value: database
       - key: LOG_CHANNEL
         value: stderr
-      # Claves de Cloudflare Turnstile (cargar valores reales en el panel)
-      - key: SERVICES_TURNSTILE_SITE_KEY
-        sync: false
-      - key: SERVICES_TURNSTILE_SECRET_KEY
-        sync: false
+      # Cloudflare Turnstile: por defecto claves de PRUEBA (siempre validan).
+      # Reemplazar por las claves reales en el panel de Render para producción.
+      - key: TURNSTILE_SITE_KEY
+        value: "1x00000000000000000000AA"
+      - key: TURNSTILE_SECRET_KEY
+        value: "1x0000000000000000000000000000000AA"

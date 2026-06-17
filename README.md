@@ -64,8 +64,8 @@ DB_DATABASE=nombre_de_tu_bd
 DB_USERNAME=tu_usuario
 DB_PASSWORD=tu_password
 
-SERVICES_TURNSTILE_SITE_KEY=tu_site_key
-SERVICES_TURNSTILE_SECRET_KEY=tu_secret_key
+TURNSTILE_SITE_KEY=tu_site_key
+TURNSTILE_SECRET_KEY=tu_secret_key
 ```
 
 5. Migrar base de datos.
