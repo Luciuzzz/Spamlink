@@ -1,6 +1,6 @@
 # =========================================================
 #  Spamlink - docker-compose
-#  Levanta dos servicios: la app (Laravel + Filament) y MySQL.
+#  Levanta dos servicios: la app (Laravel + Filament) y PostgreSQL.
 #  Uso:
 #    docker compose build
 #    docker compose up -d
@@ -8,22 +8,21 @@
 # =========================================================
 services:
 
-  # ---------- Base de datos MySQL ----------
+  # ---------- Base de datos PostgreSQL ----------
   db:
-    image: mysql:8.0
+    image: postgres:16
     container_name: spamlink-db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: spamlink
-      MYSQL_USER: spamlink
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: rootsecret
+      POSTGRES_DB: spamlink
+      POSTGRES_USER: spamlink
+      POSTGRES_PASSWORD: secret
     ports:
-      - "3306:3306"          # opcional: conectar un cliente externo (DBeaver, etc.)
+      - "5432:5432"          # opcional: conectar un cliente externo (DBeaver, etc.)
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootsecret"]
+      test: ["CMD-SHELL", "pg_isready -U spamlink -d spamlink"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -41,10 +40,10 @@ services:
       APP_NAME: Spamlink
       APP_ENV: production
       APP_DEBUG: "false"
-      # Conexión a la base MySQL del servicio "db"
-      DB_CONNECTION: mysql
+      # Conexión a la base PostgreSQL del servicio "db"
+      DB_CONNECTION: pgsql
       DB_HOST: db
-      DB_PORT: "3306"
+      DB_PORT: "5432"
       DB_DATABASE: spamlink
       DB_USERNAME: spamlink
       DB_PASSWORD: secret

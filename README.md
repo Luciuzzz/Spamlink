@@ -21,9 +21,12 @@ Landing tipo "link in bio" construida con Laravel 12 + Filament 4. Permite admin
 
 - PHP >= 8.2
 - Composer
-- MySQL o MariaDB
+- PostgreSQL >= 14
 - Node.js >= 20
 - npm >= 10
+
+> O simplemente **Docker + Docker Compose v2** (ver sección Docker más abajo),
+> que arma todo el entorno sin instalar nada de lo anterior.
 
 ## Instalación local
 
@@ -54,9 +57,9 @@ php artisan storage:link
 ```env
 APP_URL=http://127.0.0.1:8000
 
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=3306
+DB_PORT=5432
 DB_DATABASE=nombre_de_tu_bd
 DB_USERNAME=tu_usuario
 DB_PASSWORD=tu_password
@@ -140,19 +143,13 @@ Si vas a guardar los backups en el HDD, apunta `BACKUP_PATH` a la ruta montada d
 ## 🐳 Contenerización con Docker
 
 El proyecto incluye un `Dockerfile` multi-stage que compila los assets con Vite
-(Node 20) y sirve la aplicación con PHP 8.2 + Apache. Hay **dos formas** de
-levantarlo:
+(Node 20) y sirve la aplicación con PHP 8.2 + Apache. Se levanta con
+**Docker Compose**, que orquesta la aplicación y la base de datos PostgreSQL.
 
-| Forma | Base de datos | Cuándo usarla |
-|-------|---------------|----------------|
-| `docker compose` | **MySQL** (contenedor aparte) | Recomendada — entorno completo y persistente |
-| `docker run` | **SQLite** (dentro del contenedor) | Prueba rápida autocontenida |
-
-### Opción A — Docker Compose (MySQL) ✅ recomendada
-
-Levanta dos servicios definidos en [`docker-compose.yml`](docker-compose.yml):
-`app` (Laravel + Filament) y `db` (MySQL 8). La app espera a que MySQL esté
-disponible, ejecuta las migraciones y crea el usuario administrador inicial.
+Compose levanta dos servicios definidos en
+[`docker-compose.yml`](docker-compose.yml): `app` (Laravel + Filament) y `db`
+(PostgreSQL 16). La app espera a que la base esté disponible, ejecuta las
+migraciones y crea el usuario administrador inicial.
 
 ```bash
 docker compose build
@@ -161,7 +158,7 @@ docker compose up -d
 
 | Servicio | Descripción | Puerto |
 |----------|-------------|--------|
-| `db` | MySQL 8.0 | 3306 |
+| `db` | PostgreSQL 16 | 5432 |
 | `app` | API + panel Laravel/Filament | 8080 |
 
 La aplicación queda disponible en: **http://localhost:8080**
@@ -176,7 +173,7 @@ Comandos útiles:
 ```bash
 docker compose ps              # Estado de los contenedores
 docker compose logs -f app     # Ver logs de la aplicación
-docker compose logs -f db      # Ver logs de MySQL
+docker compose logs -f db      # Ver logs de PostgreSQL
 docker compose down            # Apagar (conserva los datos)
 docker compose down -v         # Apagar y BORRAR la base (empezar limpio)
 ```
@@ -186,36 +183,29 @@ Ejecutar comandos dentro de los contenedores:
 ```bash
 docker compose exec app php artisan migrate:fresh --seed   # recargar la base
 docker compose exec app php artisan test                   # correr tests
-docker compose exec db mysql -uspamlink -psecret spamlink  # consola MySQL
+docker compose exec db psql -U spamlink -d spamlink        # consola PostgreSQL
 ```
 
 Credenciales de la base (definidas en `docker-compose.yml`):
 
 ```env
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=db
-DB_PORT=3306
+DB_PORT=5432
 DB_DATABASE=spamlink
 DB_USERNAME=spamlink
 DB_PASSWORD=secret
 ```
 
-### Opción B — Docker run (SQLite, prueba rápida)
-
-Usa SQLite dentro del propio contenedor, sin base de datos externa:
+### En otra PC — todo montado con un comando
 
 ```bash
-docker build -t spamlink .
-docker run -d --name spamlink-app -p 8080:8080 spamlink
+git clone https://github.com/Luciuzzz/Spamlink.git
+cd Spamlink
+docker compose up -d
 ```
 
-Comandos auxiliares:
-
-```bash
-docker ps                  # Ver contenedores en ejecución
-docker logs spamlink-app   # Ver logs del contenedor
-docker rm -f spamlink-app  # Detener y eliminar el contenedor
-```
+No requiere instalar PHP, PostgreSQL ni Node: Docker arma todo el entorno.
 
 > **Evidencias:** las capturas de `docker compose build`, `docker compose up` y
 > la app funcionando están en [`docs/evidencias/`](docs/evidencias/).

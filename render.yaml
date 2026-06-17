@@ -1,8 +1,15 @@
 # =========================================================
 #  Spamlink - Configuracion de despliegue en Render
-#  Render detecta este archivo (Blueprint) y crea el servicio.
-#  Tambien se puede crear el servicio manualmente desde el panel.
+#  Render detecta este archivo (Blueprint) y crea el servicio web
+#  junto con una base de datos PostgreSQL gestionada.
 # =========================================================
+
+databases:
+  - name: spamlink-db
+    databaseName: spamlink
+    user: spamlink
+    plan: free
+
 services:
   - type: web
     name: spamlink
@@ -27,8 +34,31 @@ services:
           type: web
           name: spamlink
           property: hostport
+
+      # ----- Conexion a la base PostgreSQL gestionada por Render -----
       - key: DB_CONNECTION
-        value: sqlite
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: spamlink-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: spamlink-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: spamlink-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: spamlink-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: spamlink-db
+          property: password
+
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_STORE
