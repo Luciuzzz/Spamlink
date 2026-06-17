@@ -17,16 +17,25 @@ class RegisterRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'cf-turnstile-response' => ['required', 'string'],
         ];
+
+        if (config('services.turnstile.enabled', false)) {
+            $rules['cf-turnstile-response'] = ['required', 'string'];
+        }
+
+        return $rules;
     }
 
     public function withValidator($validator)
     {
+        if (! config('services.turnstile.enabled', false)) {
+            return;
+        }
+
         $validator->after(function ($validator) {
             $token = $this->input('cf-turnstile-response');
             if (!is_string($token) || $token === '') {
