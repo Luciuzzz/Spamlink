@@ -40,6 +40,8 @@ services:
       APP_NAME: Spamlink
       APP_ENV: production
       APP_DEBUG: "false"
+      # Clave fija para que las sesiones sean estables entre reinicios
+      APP_KEY: "base64:s8WLx2nMHMcKzlpQ2kUFjeOgHjv9xrKMXZhNixpOFXo="
       # Conexión a la base PostgreSQL del servicio "db"
       DB_CONNECTION: pgsql
       DB_HOST: db
@@ -51,8 +53,10 @@ services:
       SESSION_DRIVER: database
       CACHE_STORE: database
       QUEUE_CONNECTION: database
-      # Cloudflare Turnstile: claves de PRUEBA oficiales (siempre validan).
-      # Para producción, reemplazar por las claves reales del panel de Cloudflare.
+      # Cloudflare Turnstile DESACTIVADO en el contenedor: evita depender de un
+      # script externo (que algunos navegadores bloquean) y simplifica la demo.
+      # Para activarlo: poner TURNSTILE_ENABLED=true y claves reales de Cloudflare.
+      TURNSTILE_ENABLED: "false"
       TURNSTILE_SITE_KEY: "1x00000000000000000000AA"
       TURNSTILE_SECRET_KEY: "1x0000000000000000000000000000000AA"
     ports:

@@ -9,8 +9,13 @@ if [ ! -f .env ]; then
     cp .env.example .env
 fi
 
-# 2) Generar APP_KEY si no está definida
-if ! grep -q "^APP_KEY=base64" .env 2>/dev/null && [ -z "${APP_KEY}" ]; then
+# 2) APP_KEY: si viene del entorno (docker-compose/Render) la usamos y la
+#    escribimos en .env para que las sesiones sean estables entre reinicios.
+#    Si no, generamos una solo cuando .env todavía no tiene una.
+if [ -n "${APP_KEY}" ]; then
+    echo "[entrypoint] Usando APP_KEY del entorno"
+    sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|" .env || true
+elif ! grep -q "^APP_KEY=base64" .env 2>/dev/null; then
     echo "[entrypoint] Generando APP_KEY"
     php artisan key:generate --force
 fi

@@ -67,8 +67,10 @@ services:
         value: database
       - key: LOG_CHANNEL
         value: stderr
-      # Cloudflare Turnstile: por defecto claves de PRUEBA (siempre validan).
-      # Reemplazar por las claves reales en el panel de Render para producción.
+      # Cloudflare Turnstile desactivado por defecto (no depende de script externo).
+      # Para activarlo: poner TURNSTILE_ENABLED=true y claves reales de Cloudflare.
+      - key: TURNSTILE_ENABLED
+        value: "false"
       - key: TURNSTILE_SITE_KEY
         value: "1x00000000000000000000AA"
       - key: TURNSTILE_SECRET_KEY
