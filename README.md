@@ -4,7 +4,7 @@ Landing tipo "link in bio" construida con Laravel 12 + Filament 4. Permite admin
 
 ## 🔗 Enlaces del proyecto
 
-- **Despliegue (cloud):** https://spamlink.onrender.com  <!-- TODO: reemplazar por la URL real de Render -->
+- **Despliegue (cloud):** https://spamlink-6fh4.onrender.com
 - **Repositorio:** https://github.com/Luciuzzz/Spamlink
 - **Tablero Trello:** <!-- TODO: pegar link del tablero -->
 - **Video de exposición:** <!-- TODO: pegar link del video -->
@@ -142,43 +142,70 @@ Si vas a guardar los backups en el HDD, apunta `BACKUP_PATH` a la ruta montada d
 
 ## 🐳 Contenerización con Docker
 
-El proyecto incluye un `Dockerfile` multi-stage que compila los assets con Vite
-(Node 20) y sirve la aplicación con PHP 8.2 + Apache. Se levanta con
-**Docker Compose**, que orquesta la aplicación y la base de datos PostgreSQL.
+El proyecto está **100% contenerizado**: no necesitás instalar PHP, PostgreSQL
+ni Node en tu máquina. Solo Docker. El `Dockerfile` multi-stage compila los
+assets con Vite (Node 20) y sirve la app con PHP 8.2 + Apache, y
+[`docker-compose.yml`](docker-compose.yml) orquesta dos servicios: `app`
+(Laravel + Filament) y `db` (PostgreSQL 16).
 
-Compose levanta dos servicios definidos en
-[`docker-compose.yml`](docker-compose.yml): `app` (Laravel + Filament) y `db`
-(PostgreSQL 16). La app espera a que la base esté disponible, ejecuta las
-migraciones y crea el usuario administrador inicial.
+### 1. Requisitos previos (lo único que tenés que instalar)
+
+- **Docker Desktop** (Windows / macOS) o **Docker Engine** (Linux).
+- Incluye **Docker Compose v2** (el comando es `docker compose`, con espacio).
+
+Verificá que esté instalado:
 
 ```bash
-docker compose build
-docker compose up -d
+docker --version
+docker compose version
 ```
 
-| Servicio | Descripción | Puerto |
-|----------|-------------|--------|
-| `db` | PostgreSQL 16 | 5432 |
-| `app` | API + panel Laravel/Filament | 8080 |
+### 2. Levantar la aplicación (un solo comando)
 
-La aplicación queda disponible en: **http://localhost:8080**
+```bash
+git clone https://github.com/Luciuzzz/Spamlink.git
+cd Spamlink
+docker compose up -d --build
+```
+
+Eso es **todo**. No hay que crear `.env` ni configurar nada a mano: las
+credenciales de la base y la `APP_KEY` ya vienen definidas en
+`docker-compose.yml`. En el **primer arranque** Docker construye la imagen
+(tarda unos minutos) y el contenedor automáticamente:
+
+1. espera a que PostgreSQL esté disponible,
+2. ejecuta las migraciones,
+3. crea el usuario administrador inicial,
+4. cachea rutas/vistas y levanta Apache.
+
+### 3. Abrir la app
+
+| Servicio | Descripción | URL / Puerto |
+|----------|-------------|--------------|
+| `app` | Landing + panel Laravel/Filament | **http://localhost:8080** |
+| `db` | PostgreSQL 16 | `localhost:5432` |
+
+- **Landing:** http://localhost:8080
+- **Panel de administración:** http://localhost:8080/admin
 
 **Usuario administrador** creado automáticamente:
 
 - Email: `admin@correo.com`
 - Contraseña: `qwerty`
 
-Comandos útiles:
+### 4. Comandos útiles del día a día
 
 ```bash
 docker compose ps              # Estado de los contenedores
-docker compose logs -f app     # Ver logs de la aplicación
+docker compose logs -f app     # Ver logs de la aplicación (en vivo)
 docker compose logs -f db      # Ver logs de PostgreSQL
-docker compose down            # Apagar (conserva los datos)
-docker compose down -v         # Apagar y BORRAR la base (empezar limpio)
+docker compose stop            # Pausar sin borrar nada
+docker compose up -d           # Volver a arrancar
+docker compose down            # Apagar (conserva la base y las imágenes)
+docker compose down -v         # Apagar y BORRAR la base (empezar de cero)
 ```
 
-Ejecutar comandos dentro de los contenedores:
+Ejecutar comandos dentro del contenedor de la app:
 
 ```bash
 docker compose exec app php artisan migrate:fresh --seed   # recargar la base
@@ -186,7 +213,20 @@ docker compose exec app php artisan test                   # correr tests
 docker compose exec db psql -U spamlink -d spamlink        # consola PostgreSQL
 ```
 
-Credenciales de la base (definidas en `docker-compose.yml`):
+### 5. Solución de problemas
+
+- **El puerto 8080 ya está en uso:** cambiá el mapeo en `docker-compose.yml`
+  (`"8081:8080"`) y abrí http://localhost:8081. Lo mismo con el `5432` si ya
+  tenés un PostgreSQL local.
+- **Cambiaste código y no se refleja:** reconstruí la imagen con
+  `docker compose up -d --build`.
+- **Querés empezar de cero (base limpia):** `docker compose down -v` y volvé a
+  `docker compose up -d --build`.
+- **Ver qué pasó en el arranque:** `docker compose logs app` muestra los pasos
+  del `entrypoint` (espera de la BD, migraciones, seed) y el arranque de Apache.
+
+Credenciales de la base (ya configuradas en `docker-compose.yml`, no hace falta
+tocarlas):
 
 ```env
 DB_CONNECTION=pgsql
@@ -196,16 +236,6 @@ DB_DATABASE=spamlink
 DB_USERNAME=spamlink
 DB_PASSWORD=secret
 ```
-
-### En otra PC — todo montado con un comando
-
-```bash
-git clone https://github.com/Luciuzzz/Spamlink.git
-cd Spamlink
-docker compose up -d
-```
-
-No requiere instalar PHP, PostgreSQL ni Node: Docker arma todo el entorno.
 
 > **Evidencias:** las capturas de `docker compose build`, `docker compose up` y
 > la app funcionando están en [`docs/evidencias/`](docs/evidencias/).
