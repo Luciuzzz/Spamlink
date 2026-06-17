@@ -37,6 +37,11 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
+         // Detrás del proxy de Render (TLS terminado en el borde): confiar en los
+         // headers X-Forwarded-* para que Laravel detecte el esquema https y genere
+         // URLs absolutas correctas (evita mixed-content con assets/Livewire).
+         $middleware->trustProxies(at: '*');
+
          $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
             'superadmin' => SuperAdminMiddleware::class,

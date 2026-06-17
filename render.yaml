@@ -28,12 +28,12 @@ services:
       # Render genera una clave; tambien podes fijar la tuya con: php artisan key:generate --show
       - key: APP_KEY
         sync: false
-      # Render inyecta APP_URL automaticamente con la URL publica del servicio
+      # URL publica del servicio. OJO: `fromService` solo expone la direccion
+      # PRIVADA (host:port, ej. spamlink:10000), no la URL https publica, asi que
+      # se deja como secreto para cargarla en el dashboard tras el primer deploy:
+      #   APP_URL=https://spamlink.onrender.com   (usar la URL real que asigne Render)
       - key: APP_URL
-        fromService:
-          type: web
-          name: spamlink
-          property: hostport
+        sync: false
 
       # ----- Conexion a la base PostgreSQL gestionada por Render -----
       - key: DB_CONNECTION
