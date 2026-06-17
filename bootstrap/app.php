@@ -30,6 +30,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands()
+    ->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule): void {
+        $schedule->command('app:backup')
+            ->dailyAt((string) config('backup.schedule_time'))
+            ->withoutOverlapping();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
          $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,

@@ -95,3 +95,35 @@ php artisan migrate:rollback
 php artisan test
 npm run build
 ```
+
+## Backups automáticos
+
+El proyecto incluye el comando `app:backup`, que:
+
+- hace dump de la base de datos,
+- copia los logs de Laravel,
+- y elimina backups viejos según la retención configurada.
+
+Variables relevantes en `.env`:
+
+```env
+BACKUP_PATH=/mnt/docker-data/spamlink/backups
+BACKUP_KEEP_DAYS=7
+BACKUP_INCLUDE_LOGS=true
+BACKUP_INCLUDE_DATABASE=true
+BACKUP_SCHEDULE_TIME=02:00
+```
+
+Ejecución manual:
+
+```bash
+php artisan app:backup
+```
+
+Para automatizarlo con el scheduler de Laravel, agrega este cron:
+
+```cron
+* * * * * cd /home/luis/spamlink && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Si vas a guardar los backups en el HDD, apunta `BACKUP_PATH` a la ruta montada del disco, no a `/home/luis`.
