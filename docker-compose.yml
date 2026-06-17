@@ -1,0 +1,63 @@
+# =========================================================
+#  Spamlink - docker-compose
+#  Levanta dos servicios: la app (Laravel + Filament) y MySQL.
+#  Uso:
+#    docker compose build
+#    docker compose up -d
+#  App disponible en: http://localhost:8080
+# =========================================================
+services:
+
+  # ---------- Base de datos MySQL ----------
+  db:
+    image: mysql:8.0
+    container_name: spamlink-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: spamlink
+      MYSQL_USER: spamlink
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    ports:
+      - "3306:3306"          # opcional: conectar un cliente externo (DBeaver, etc.)
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootsecret"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Aplicación Laravel + Filament ----------
+  app:
+    build: .
+    image: spamlink
+    container_name: spamlink-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: Spamlink
+      APP_ENV: production
+      APP_DEBUG: "false"
+      # Conexión a la base MySQL del servicio "db"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: spamlink
+      DB_USERNAME: spamlink
+      DB_PASSWORD: secret
+      # Drivers que viven en la base (no en archivos)
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persistir los archivos subidos (imágenes de la landing)
+      - app_storage:/var/www/html/storage/app/public
+
+volumes:
+  db_data:
+  app_storage:

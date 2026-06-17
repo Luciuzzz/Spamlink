@@ -140,24 +140,76 @@ Si vas a guardar los backups en el HDD, apunta `BACKUP_PATH` a la ruta montada d
 ## 🐳 Contenerización con Docker
 
 El proyecto incluye un `Dockerfile` multi-stage que compila los assets con Vite
-(Node 20) y sirve la aplicación con PHP 8.2 + Apache. Por defecto usa **SQLite**,
-por lo que el contenedor funciona sin base de datos externa.
+(Node 20) y sirve la aplicación con PHP 8.2 + Apache. Hay **dos formas** de
+levantarlo:
 
-### Construir la imagen
+| Forma | Base de datos | Cuándo usarla |
+|-------|---------------|----------------|
+| `docker compose` | **MySQL** (contenedor aparte) | Recomendada — entorno completo y persistente |
+| `docker run` | **SQLite** (dentro del contenedor) | Prueba rápida autocontenida |
+
+### Opción A — Docker Compose (MySQL) ✅ recomendada
+
+Levanta dos servicios definidos en [`docker-compose.yml`](docker-compose.yml):
+`app` (Laravel + Filament) y `db` (MySQL 8). La app espera a que MySQL esté
+disponible, ejecuta las migraciones y crea el usuario administrador inicial.
 
 ```bash
-docker build -t spamlink .
+docker compose build
+docker compose up -d
 ```
 
-### Ejecutar el contenedor
-
-```bash
-docker run -d --name spamlink-app -p 8080:8080 spamlink
-```
+| Servicio | Descripción | Puerto |
+|----------|-------------|--------|
+| `db` | MySQL 8.0 | 3306 |
+| `app` | API + panel Laravel/Filament | 8080 |
 
 La aplicación queda disponible en: **http://localhost:8080**
 
-### Comandos auxiliares
+**Usuario administrador** creado automáticamente:
+
+- Email: `admin@correo.com`
+- Contraseña: `qwerty`
+
+Comandos útiles:
+
+```bash
+docker compose ps              # Estado de los contenedores
+docker compose logs -f app     # Ver logs de la aplicación
+docker compose logs -f db      # Ver logs de MySQL
+docker compose down            # Apagar (conserva los datos)
+docker compose down -v         # Apagar y BORRAR la base (empezar limpio)
+```
+
+Ejecutar comandos dentro de los contenedores:
+
+```bash
+docker compose exec app php artisan migrate:fresh --seed   # recargar la base
+docker compose exec app php artisan test                   # correr tests
+docker compose exec db mysql -uspamlink -psecret spamlink  # consola MySQL
+```
+
+Credenciales de la base (definidas en `docker-compose.yml`):
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=spamlink
+DB_USERNAME=spamlink
+DB_PASSWORD=secret
+```
+
+### Opción B — Docker run (SQLite, prueba rápida)
+
+Usa SQLite dentro del propio contenedor, sin base de datos externa:
+
+```bash
+docker build -t spamlink .
+docker run -d --name spamlink-app -p 8080:8080 spamlink
+```
+
+Comandos auxiliares:
 
 ```bash
 docker ps                  # Ver contenedores en ejecución
@@ -165,8 +217,8 @@ docker logs spamlink-app   # Ver logs del contenedor
 docker rm -f spamlink-app  # Detener y eliminar el contenedor
 ```
 
-> **Evidencias:** las capturas de `docker build`, `docker run` y la app
-> funcionando en el contenedor están en [`docs/evidencias/`](docs/evidencias/).
+> **Evidencias:** las capturas de `docker compose build`, `docker compose up` y
+> la app funcionando están en [`docs/evidencias/`](docs/evidencias/).
 
 ---
 
